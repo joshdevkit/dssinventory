@@ -9,9 +9,6 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Dashboard</h1>
                     </div>
-                    <div class="col-sm-6">
-
-                    </div>
                 </div>
             </div>
         </section>

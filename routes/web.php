@@ -1,8 +1,6 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\ConstructionController as ControllersConstructionController;
-use App\Http\Controllers\FluidController as ControllersFluidController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserPanel\UserController;
@@ -10,10 +8,8 @@ use App\Http\Controllers\UserPanel\TransactionOfficeController;
 use App\Http\Controllers\UserPanel\TransactionOfficeController as AdminSiteOffice;
 
 use App\Http\Controllers\UserPanel\TeacherborrowController;
-use App\Http\Controllers\UserPanel\StudentborrowController;
 use App\Http\Controllers\UserPanel\NotificationController;
 use App\Http\Controllers\UserPanel\Office_UserController;
-use App\Http\Controllers\UserPanel\Equipment_UserController;
 use App\Http\Controllers\OfficePanel\OfficeController;
 use App\Http\Controllers\OfficePanel\CalendaroController;
 use App\Http\Controllers\OfficePanel\SuppliesController;
@@ -33,6 +29,7 @@ use App\Http\Controllers\DeanPanel\DSurveyingController;
 use App\Http\Controllers\DeanPanel\DTestingController;
 use App\Http\Controllers\DeanPanel\DEquipmentController;
 use App\Http\Controllers\DeanPanel\DSuppliesController;
+use App\Http\Controllers\OfficeRequisitionController;
 use App\Http\Controllers\SuperAdminPanel\SComputerController;
 use App\Http\Controllers\SuperAdminPanel\SConstructionController;
 use App\Http\Controllers\SuperAdminPanel\SFluidController;
@@ -59,7 +56,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('change-password', AccountController::class);
 });
 
-require __DIR__ . '/auth.php';
 
 
 Route::middleware(['auth', 'role:site secretary'])->group(function () {
@@ -98,6 +94,11 @@ Route::middleware(['auth', 'role:site secretary'])->group(function () {
         auth()->user()->unreadNotifications->markAsRead();
         return response()->json(['message' => 'All notifications marked as read']);
     });
+
+    Route::get('/office/requisition', [OfficeRequisitionController::class, 'requisitions'])->name('office.requisition');
+    Route::get('/office/all-requisition-request', [OfficeRequisitionController::class, 'forUser'])->name('office.requisition.request');
+    Route::post('/office/requisition', [OfficeRequisitionController::class, 'getRequisitions'])->name('office.requisition.post');
+    Route::get('/office/print-record/{id}', [OfficeRequisitionController::class, 'print'])->name('print-record');
 });
 
 Route::middleware(['auth', 'role:laboratory'])->group(function () {
@@ -168,6 +169,8 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('profile/notification', [NotificationController::class, 'index'])->name('notification.index');
     Route::get('/notification/markAllAsRead', [NotificationController::class, 'markAllAsRead'])->name('notification.markAllAsRead');
     Route::delete('/notification/remove/{index}', [NotificationController::class, 'removeNotification'])->name('notification.remove');
+
+    Route::get('/items/items-selected', [TeacherBorrowController::class, 'findMatchingItems'])->name('find-items');
 });
 
 
@@ -189,4 +192,12 @@ Route::middleware(['auth', 'role:dean'])->group(function () {
     Route::get('/dean/requisitions/chart', [TeacherborrowController::class, 'getChartData'])->name('dean.requisitions.chart');
     Route::get('/dean/office/chart', [TeacherborrowController::class, 'offcieChartData'])->name('dean.office.chart');
     Route::get('/dean/site-transactions', [TransactionOfficeController::class, 'index'])->name('dean.transactions.site');
+
+
+    Route::get('/dean/site-office-requisition', [OfficeRequisitionController::class, 'index'])->name('site-requisition.index');
+    Route::get('/dean/site-office-requisition/{id}', [OfficeRequisitionController::class, 'show'])->name('site-requisition.show');
+    Route::post('/dean/site-office-requisition', [OfficeRequisitionController::class, 'approve'])->name('site-requisition.approve');
 });
+
+
+require __DIR__ . '/auth.php';

@@ -122,7 +122,7 @@
 
                                     <div id="items">
                                         <div class="item-row form-row mb-3">
-                                            <div class="col">
+                                            <div class="col col-2">
                                                 <label for="item-0">Equipment</label>
                                                 <select class="form-control validate item-select" id="item-0"
                                                     name="items[0][item_id]">
@@ -135,8 +135,15 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-
                                             </div>
+                                            <div class="col col-4">
+                                                <label for="serial-0">Items</label>
+                                                <select class="form-control validate serial-select" id="serial-0"
+                                                    name="items[0][items][]" multiple>
+                                                    <option value="">Select Serial</option>
+                                                </select>
+                                            </div>
+
                                             <div class="col">
                                                 <label for="qty-0">Quantity:</label>
                                                 <input type="number" class="form-control validate quantity-input"
@@ -154,7 +161,8 @@
                                             </div>
                                             <input type="hidden" id="item-id-0" name="items[0][item_id]"
                                                 value="">
-                                            <div class="col-md-3 form-group align-self-end mt-4">
+                                            <div class="col-md-3 form-group align-self-end absolute"
+                                                style="margin-top: 2rem;">
                                                 <x-danger-button type="button"
                                                     class="btn btn-danger remove-item">Remove</x-danger-button>
                                             </div>
@@ -191,13 +199,12 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         $(document).ready(function() {
-            var itemIndex = 1;
-
-            $(".quantity-input").on("input", function() {
-                if ($(this).val() <= 0) {
-                    $(this).val(1);
-                }
+            $('#serial-0').select2({
+                placeholder: "Select Serial",
+                allowClear: true,
+                width: '100%'
             });
+            var itemIndex = 1;
 
             function addItemRow() {
                 var items = @json(session('items', []));
@@ -207,86 +214,114 @@
                 }
 
                 var itemRow = `
-            <div class="item-row form-row mb-3">
-                <div class="col">
-                    <label for="item-${itemIndex}">Equipment</label>
-                    <select class="form-control validate item-select" id="item-${itemIndex}" name="items[${itemIndex}][item]">
-                        <option value="">Select an item</option>`;
+                    <div class="item-row form-row mb-3">
+                        <div class="col col-2">
+                            <label for="item-${itemIndex}">Equipment</label>
+                            <select class="form-control validate item-select" id="item-${itemIndex}" name="items[${itemIndex}][item_id]">
+                                <option value="">Select an item</option>`;
 
                 $.each(items, function(index, item) {
-                    itemRow += `<option value="${item.id}" data-brand="${item.brand}" data-quantity="${item.quantity}">
-                            ${item.equipment} (${item.quantity} available)
-                        </option>`;
+                    itemRow += `<option value="${item.id}" data-brand="${item.brand}" data-quantity="${item.count}">
+                                    ${item.equipment} (${item.count} available)
+                                </option>`;
                 });
 
-                itemRow += `</select>
-                </div>
-                <div class="col">
-                    <label for="qty-${itemIndex}">Quantity:</label>
-                    <input type="number" class="form-control validate" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" data-max-quantity="0">
-                </div>
-                <div class="col">
-                    <label for="brand-${itemIndex}">Brand:</label>
-                    <input type="text" class="form-control validate" id="brand-${itemIndex}" name="items[${itemIndex}][brand]" readonly>
-                </div>
-                <div class="col">
-                    <label for="remarks-${itemIndex}">Condition:</label>
-                    <input type="text" class="form-control validate" id="remarks-${itemIndex}" name="items[${itemIndex}][remarks]" placeholder="Enter condition">
-                </div>
-                <input type="hidden" id="item-id-${itemIndex}" name="items[${itemIndex}][item_id]" value="">
-                <div class="col-md-3 form-group align-self-end mt-4">
-                    <button type="button" class="btn btn-danger remove-item">Remove</button>
-                </div>
-            </div>`;
+                itemRow += `
+                            </select>
+                        </div>
+                        <div class="col col-4">
+                            <label for="serial-${itemIndex}">Items</label>
+                            <select class="form-control validate serial-select" id="serial-${itemIndex}" name="items[${itemIndex}][items][]" multiple>
+                                <option value="">Select Serial</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label for="qty-${itemIndex}">Quantity:</label>
+                            <input type="number" class="form-control validate quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" data-max-quantity="0">
+                        </div>
+                        <div class="col">
+                            <label for="brand-${itemIndex}">Brand:</label>
+                            <input type="text" class="form-control validate" id="brand-${itemIndex}" name="items[${itemIndex}][brand]" readonly>
+                        </div>
+                        <div class="col">
+                            <label for="remarks-${itemIndex}">Condition:</label>
+                            <input type="text" class="form-control validate" id="remarks-${itemIndex}" name="items[${itemIndex}][remarks]" placeholder="Enter condition">
+                        </div>
+                        <input type="hidden" id="item-id-${itemIndex}" name="items[${itemIndex}][item_id]" value="">
+                        <div class="col-md-3 form-group align-self-end mt-4">
+                            <button type="button" class="btn btn-danger remove-item">Remove</button>
+                        </div>
+                    </div>`;
 
                 $('#items').append(itemRow);
+                $('#serial-' + itemIndex).select2({
+                    placeholder: "Select Serial",
+                    allowClear: true,
+                    width: '100%',
+                });
                 itemIndex++;
             }
 
-            function handleItemSelection() {
-                $(document).on('change', '.item-select', function() {
-                    var $this = $(this);
-                    var selectedOption = $this.find('option:selected');
-                    var itemRow = $this.closest('.item-row');
-                    var brandInput = itemRow.find('input[name$="[brand]"]');
-                    var qtyInput = itemRow.find('input[name$="[quantity]"]');
-                    var itemIdInput = itemRow.find('input[name$="[item_id]"]');
+            $(document).on('change', '.item-select', function() {
+                var $this = $(this);
+                var selectedOption = $this.find('option:selected');
+                var itemRow = $this.closest('.item-row');
+                var brandInput = itemRow.find('input[name$="[brand]"]');
+                var qtyInput = itemRow.find('input[name$="[quantity]"]');
+                var itemIdInput = itemRow.find('input[name$="[item_id]"]');
+                var serialDropdown = itemRow.find('.serial-select');
 
-                    var maxQuantity = selectedOption.data('quantity');
-                    var itemId = selectedOption.val();
+                var itemId = selectedOption.val();
+                var maxQuantity = selectedOption.data('quantity');
+                var brand = selectedOption.data('brand');
 
-                    brandInput.val(selectedOption.data('brand'));
-                    qtyInput.attr('data-max-quantity', maxQuantity);
-                    itemIdInput.val(itemId);
-                });
-            }
+                brandInput.val(brand);
+                qtyInput.attr('data-max-quantity', maxQuantity);
+                itemIdInput.val(itemId);
 
-            function handleQuantityValidation() {
-                $(document).on('input', 'input[name$="[quantity]"]', function() {
-                    var $this = $(this);
-                    var maxQuantity = parseInt($this.attr('data-max-quantity'), 10);
-                    var value = parseInt($this.val(), 10);
+                $.ajax({
+                    url: '{{ route('find-items') }}',
+                    type: 'GET',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        request_id: itemId,
+                        category: $('#category').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
 
-                    if (value > maxQuantity) {
-                        $this.val(maxQuantity);
-                        alert('Quantity cannot exceed available stock.');
+                        serialDropdown.empty().append(
+                            '<option value="">Select Serial</option>');
+                        $.each(response[0], function(index, serial) {
+                            serialDropdown.append(
+                                `<option value="${serial.id}">${serial.serial_no}</option>`
+                            );
+                        });
                     }
                 });
-            }
+            });
 
-            function handleRemoveItem() {
-                $(document).on('click', '.remove-item', function() {
-                    $(this).closest('.item-row').remove();
-                });
-            }
+            $(document).on('input', '.quantity-input', function() {
+                var $this = $(this);
+                var maxQuantity = parseInt($this.data('max-quantity'), 10);
+                var value = parseInt($this.val(), 10);
+
+                if (value > maxQuantity) {
+                    $this.val(maxQuantity);
+                    alert('Quantity cannot exceed available stock.');
+                } else if (value < 1) {
+                    $this.val(1);
+                }
+            });
+
+            $(document).on('click', '.remove-item', function() {
+                $(this).closest('.item-row').remove();
+            });
 
             $('.add-item').on('click', function() {
                 addItemRow();
             });
 
-            handleItemSelection();
-            handleQuantityValidation();
-            handleRemoveItem();
         });
 
 

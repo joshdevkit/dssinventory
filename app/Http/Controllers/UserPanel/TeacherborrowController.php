@@ -4,16 +4,20 @@ namespace App\Http\Controllers\UserPanel;
 
 use App\Http\Controllers\Controller;
 use App\Models\ComputerEngineering;
+use App\Models\ComputerEngineeringSerial;
 use App\Models\Construction;
 use App\Models\ConstructionSerials;
 use App\Models\Fluid;
+use App\Models\FluidSerials;
 use App\Models\OfficeRequest;
 use App\Models\Requisition;
 use App\Models\RequisitionsItems;
 use App\Models\RequisitionsItemsStudents;
 use App\Models\Surveying;
+use App\Models\SurveyingSerials;
 use App\Models\Testing;
 use App\Models\TeacherBorrow;
+use App\Models\TestingSerials;
 use App\Models\User;
 use App\Notifications\DeanRequisitionDecisionNotification;
 use App\Notifications\NewRequisitionNotification;
@@ -81,26 +85,6 @@ class TeacherBorrowController extends Controller
     public function selectCategory(Request $request)
     {
         $category = $request->input('category');
-
-        // if ($category === 'equipments') {
-        //     $items = Equipment::with('items')->get()->map(function ($equipment) {
-        //         return [
-        //             'id' => $equipment->id,
-        //             'item' => $equipment->item,
-        //             'count' => $equipment->items->count(),
-        //         ];
-        //     })->toArray();
-        // } elseif ($category === 'supplies') {
-        //     $items = Supplies::with('items')->get()->map(function ($equipment) {
-        //         return [
-        //             'id' => $equipment->id,
-        //             'item' => $equipment->item,
-        //             'count' => $equipment->items->count(),
-        //         ];
-        //     })->toArray();
-        // } else {
-        //     $items = [];
-        // }
 
         if ($category == 'constructions') {
             $items = Construction::with('items')->get()->map(function ($constructionsSerial) {
@@ -170,6 +154,7 @@ class TeacherBorrowController extends Controller
 
     public function store(Request $request)
     {
+        dd($request);
         $validated = $request->validate([
             'dateFiled' => 'required',
             'dateNeeded' =>  'required',
@@ -513,6 +498,35 @@ class TeacherBorrowController extends Controller
         return view('dean.transaction.details', compact('data'));
     }
 
+    public function findMatchingItems(Request $request)
+    {
+        $category = $request->input('category');
+        $equipment_id = $request->input('request_id');
+
+        $data =  $this->getItemsByIdOnly(ucfirst($category), $equipment_id);
+        return response()->json([
+            $data
+        ]);
+    }
+
+    protected function getItemsByIdOnly($category, $equipment_id)
+    {
+        switch ($category) {
+            case 'Constructions':
+                return ConstructionSerials::where('product_id', $equipment_id)->get();
+            case 'Testings':
+                return TestingSerials::where('product_id', $equipment_id)->get();
+            case 'Surveying':
+                return SurveyingSerials::where('product_id', $equipment_id)->get();
+            case 'Fluids':
+                return FluidSerials::where('product_id', $equipment_id)->get();
+            case 'ComputerEngineering':
+                return ComputerEngineeringSerial::where('product_id', $equipment_id)->get();
+            default:
+                return collect();
+                break;
+        }
+    }
 
     protected function getItemsByCategory($category, $equipment_ids)
     {

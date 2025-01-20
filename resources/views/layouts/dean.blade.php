@@ -63,8 +63,7 @@
 
                         @forelse($notifications as $notification)
                             <div class="dropdown-divider"></div>
-                            <a href="{{ route('dean.transactions.show', ['id' => $notification->data['requisition_id']]) }}"
-                                class="dropdown-item">
+                            <a href="#" class="dropdown-item">
                                 <i class="fas fa-envelope mr-2"></i>
                                 {!! \Illuminate\Support\Str::limit($notification->data['activity'], 20, '...') !!} <br>
                                 {!! \Illuminate\Support\Str::limit($notification->data['status'], 25, '...') !!}

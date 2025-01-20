@@ -44,6 +44,14 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ request()->routeIs('office.requisition') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('office.requisition') ? 'active' : '' }}"
+                        href="{{ route('office.requisition') }}">
+                        <i class="nav-icon fas fa-laptop" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Requisition') }}</p>
+                    </a>
+                </li>
+
                 <li class="nav-item {{ request()->routeIs('change-password') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('change-password.index') ? 'active' : '' }}"
                         href="{{ route('change-password.index') }}">

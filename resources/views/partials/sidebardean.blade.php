@@ -111,6 +111,14 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ request()->routeIs('site-requisition.index') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('site-requisition.index') ? 'active' : '' }}"
+                        href="{{ route('site-requisition.index') }}">
+                        <i class="nav-icon fas fa-laptop" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Requisition') }}</p>
+                    </a>
+                </li>
+
             </ul>
         </nav>
 
