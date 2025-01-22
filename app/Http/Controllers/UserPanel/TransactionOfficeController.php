@@ -27,13 +27,13 @@ class TransactionOfficeController extends Controller
 
         if ($category === 'equipments') {
             $items = Equipment::with('items')->get()->map(function ($equipment) {
-                $nonQueuedItems = $equipment->items->filter(function ($item) {
-                    return $item->status !== 'Queue';
+                $nonQueuedNonDamagedItems = $equipment->items->filter(function ($item) {
+                    return $item->status !== 'Queue' && $item->status !== 'Damaged';
                 });
                 return [
                     'id' => $equipment->id,
                     'item' => $equipment->item,
-                    'count' => $nonQueuedItems->count(),
+                    'count' => $nonQueuedNonDamagedItems->count(),
                 ];
             })->toArray();
         } elseif ($category === 'supplies') {
@@ -213,8 +213,6 @@ class TransactionOfficeController extends Controller
 
                 )
                 ->get();
-
-            // dd($requestDetails);
         }
         return view('office.transactions.details', compact('requestDetails'));
     }
@@ -286,75 +284,6 @@ class TransactionOfficeController extends Controller
 
             return response()->json(['message' => 'Status updated successfully!'], 200);
         }
-
-
-        // try {
-        //     $requestItem = OfficeRequest::findOrFail($request->id);
-        //     $itemType = $requestItem->item_type;
-        //     $itemId = $requestItem->item_id;
-        //     $quantityRequested = $requestItem->quantity_requested;
-        //     $requestItemStataus = $requestItem->status;
-        //     if ($requestItem->status === 'Approved' && $request->status === 'Received') {
-        //         $requestItem->status = 'Received';
-        //     } elseif (in_array($request->status, ['Approved', 'Declined', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
-        //         $requestItem->status = $request->status;
-        //     } else {
-        //         return response()->json(['error' => 'Invalid status transition'], 400);
-        //     }
-
-        //     $item = null;
-        //     $itemName = '';
-
-        //     switch ($itemType) {
-        //         case 'Supplies':
-        //             $item = Supplies::findOrFail($itemId);
-        //             $itemName = $item->item;
-        //             if ($request->status === 'Approved') {
-        //                 $requestItemStataus = 'Approved';
-        //                 $item->save();
-        //             } else if ($request->status  === 'Received') {
-        //                 $item->quantity -= $quantityRequested;
-        //             }
-        //             $item->save();
-        //             break;
-
-        //         case 'Equipments':
-        //             $item = Equipment::findOrFail($itemId);
-        //             $itemName = $item->item;
-        //             if ($request->status === 'Returned') {
-        //                 $item->quantity += $quantityRequested;
-        //             } else if ($request->status === 'Received') {
-        //                 $item->quantity -= $quantityRequested;
-        //             } elseif ($request->status === 'Damaged') {
-        //                 $item->save();
-        //             } elseif ($request->status === 'Repaired') {
-        //                 $item->quantity += $quantityRequested;
-        //             } elseif ($request->status === 'XXX') {
-        //                 $item->save();
-        //             } elseif ($request->status === 'Approved') {
-        //                 $item->save();
-        //             } else {
-        //                 $item->save();
-        //             }
-        //             $item->save();
-        //             break;
-
-        //         default:
-        //             return response()->json(['error' => 'Invalid item type'], 400);
-        //     }
-
-        //     $requestItem->save();
-
-        //     if (in_array($request->status, ['Approved', 'Declined', 'Received', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
-        //         $usersWithRole = User::role('user')->where('id', $requestItem->requested_by)->get();
-        //         $message = "The {$itemType}\n'{$itemName}' has been {$requestItem->status}.";
-        //         Notification::send($usersWithRole, new UserNotifications($message, $itemId, $itemType));
-        //     }
-
-        //     return response()->json(['message' => 'Status updated successfully!'], 200);
-        // } catch (\Exception $e) {
-        //     return response()->json(['error' => 'Unable to update status', 'message' => $e->getMessage()], 500);
-        // }
     }
 
 
@@ -477,10 +406,11 @@ class TransactionOfficeController extends Controller
     public function selectedItems($id)
     {
         $equipmentItems = EquipmentItems::where('equipment_id', $id)
-            ->where('status', '!=', 'Queue')
+            ->whereNotIn('status', ['Queue', 'Damaged'])
             ->get();
         return response()->json($equipmentItems);
     }
+
 
 
     public function submitAddedNotes(Request $request)

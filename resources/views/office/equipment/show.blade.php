@@ -36,11 +36,12 @@
                         <div class="col">
                             <strong>SERIAL NO:</strong><br>
                             @foreach ($data['items'] as $item)
-                                {{ $item->serial_no }}@if (!$loop->last)
+                                {{ $item->serial_no }} - {{ $item->status }}@if (!$loop->last)
                                     <br>
                                 @endif
                             @endforeach
                         </div>
+
                         <div class="col">
                             <strong>ID:</strong> {{ $data->id }}<br>
                             <strong>QUANTITY:</strong> {{ $data->quantity }}<br>
