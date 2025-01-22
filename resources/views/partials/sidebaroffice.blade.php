@@ -44,6 +44,14 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ request()->routeIs('site.equipment-items.index') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('site.equipment-items.index') ? 'active' : '' }}"
+                        href="{{ route('site.equipment-items.index') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Equipment Items') }}</p>
+                    </a>
+                </li>
+
                 <li class="nav-item {{ request()->routeIs('office.requisition') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('office.requisition') ? 'active' : '' }}"
                         href="{{ route('office.requisition') }}">

@@ -65,8 +65,23 @@ Route::middleware(['auth', 'role:site secretary'])->group(function () {
     Route::resource('equipment', EquipmentController::class);
     Route::get('/office/supplies', [SuppliesController::class, 'index'])->name('supplies.index');
     Route::get('/office/equipment', [EquipmentController::class, 'index'])->name('site.equipment.index');
+    Route::get('/office/equipment-items', [EquipmentController::class, 'equipment_items'])->name('site.equipment-items.index');
+
     Route::get('office/calendaro', [CalendaroController::class, 'index'])->name('office.calendaro');
     Route::get('/office/transactions', [TransactionOfficeController::class, 'index'])->name('office-admin.transactions');
+
+
+
+    Route::get('/office/transactions/details/{id}', [TransactionOfficeController::class, 'details'])->name('office-admin.transactions-details');
+    Route::get('/office/transactions/view-details/{id}', [TransactionOfficeController::class, 'view_details'])->name('office-transactions-details-data');
+
+    //mark each items as damage
+
+    Route::post('/office/submit-added-notes', [TransactionOfficeController::class, 'submitAddedNotes'])->name('office.submit-added-notes');
+    Route::post('/office/submit-selected-items', [TransactionOfficeController::class, 'submitGoodCondition'])->name('office.submit-good-items');
+
+
+
     Route::post('site-office/transactions/update', [TransactionOfficeController::class, 'decisions'])->name('office.transaction-update');
     Route::post('/office/transactions/{id}/disapprove', [TransactionOfficeController::class, 'disapprove'])->name('office.transactions.disapprove');
     Route::post('/office/transactions/{id}/returned', [TransactionOfficeController::class, 'returned'])->name('office.transactions.returned');
@@ -161,6 +176,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
     Route::get('/office_user/create', [TransactionOfficeController::class, 'create'])->name('office_user.create');
     Route::post('/office_user/selectCategory', [TransactionOfficeController::class, 'selectCategory'])->name('office_user.selectCategory');
+    Route::get('/office/selected-items/{id}', [TransactionOfficeController::class, 'selectedItems'])->name('office_user.items-selected');
     Route::get('/teachersborrow/create', [TeacherBorrowController::class, 'create'])->name('teachersborrow.create');
     Route::post('/teachersborrow/selectCategory', [TeacherBorrowController::class, 'selectCategory'])->name('teachersborrow.selectCategory');
 

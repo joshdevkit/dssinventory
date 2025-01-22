@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\UserPanel;
 
 use App\Http\Controllers\Controller;
+use App\Models\BorrowedEquipment;
 use Illuminate\Http\Request;
 use App\Models\TransactionOffice;
 use App\Models\Equipment;
+use App\Models\EquipmentItems;
 use App\Models\OfficeRequest;
 use App\Models\Supplies;
 use App\Models\User;
@@ -25,10 +27,13 @@ class TransactionOfficeController extends Controller
 
         if ($category === 'equipments') {
             $items = Equipment::with('items')->get()->map(function ($equipment) {
+                $nonQueuedItems = $equipment->items->filter(function ($item) {
+                    return $item->status !== 'Queue';
+                });
                 return [
                     'id' => $equipment->id,
                     'item' => $equipment->item,
-                    'count' => $equipment->quantity,
+                    'count' => $nonQueuedItems->count(),
                 ];
             })->toArray();
         } elseif ($category === 'supplies') {
@@ -63,23 +68,56 @@ class TransactionOfficeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'items' => 'required|array',
             'items.*.item_id' => 'required',
-            'items.*.quantity' => 'required',
             'purpose' => 'required|string',
+            'category' => 'required|string',
         ]);
 
-        foreach ($request->input('items') as $item) {
-            OfficeRequest::create([
-                'item_id' => $item['item_id'],
-                'item_type' => $request->input('category'),
-                'quantity_requested' => $item['quantity'],
-                'requested_by' => Auth::id(),
-                'purpose' => $request->input('purpose')
-            ]);
+        if ($data['category'] === 'Supplies') {
+            foreach ($request->input('items') as $item) {
+                OfficeRequest::create([
+                    'item_id' => $item['item_id'],
+                    'item_type' => $request->input('category'),
+                    'quantity_requested' => $item['quantity'],
+                    'requested_by' => Auth::id(),
+                    'purpose' => $request->input('purpose'),
+                ]);
+            }
         }
 
+        if ($data['category'] === 'Equipments') {
+
+            $officeRequest = OfficeRequest::create([
+                'item_type' => $request->input('category'),
+                'quantity_requested' =>  count($request->input('items')),
+                'requested_by' => Auth::id(),
+                'purpose' => $request->input('purpose'),
+            ]);
+
+            foreach ($request->input('items') as $index => $item) {
+                $item_id = $item['item_id'];
+
+                $serialsKey = 'serial-' . $index;
+                $serials = $request->input($serialsKey);
+
+                if ($serials && is_array($serials)) {
+                    foreach ($serials as $serial) {
+
+                        $itemsSerialData = EquipmentItems::where('id', $serial)->first();
+                        $itemsSerialData->status = 'Queue';
+                        $itemsSerialData->save();
+
+                        BorrowedEquipment::create([
+                            'office_requests_id' => $officeRequest->id,
+                            'item_id' => $item_id,
+                            'equipment_serial_id' => $serial,
+                        ]);
+                    }
+                }
+            }
+        }
 
         return redirect()->route('office_user.create')->with('success', 'Request submitted successfully!');
     }
@@ -122,6 +160,65 @@ class TransactionOfficeController extends Controller
         }
     }
 
+    public function details($id)
+    {
+        $request = DB::table('office_requests')
+            ->where('id', $id)
+            ->select('item_type')
+            ->first();
+
+        if ($request && $request->item_type === 'Equipments') {
+            $requestDetails = DB::table('office_requests')
+                ->leftJoin('borrowed_equipment', 'office_requests.id', '=', 'borrowed_equipment.office_requests_id')
+                ->leftJoin('equipment_items', 'borrowed_equipment.equipment_serial_id', '=', 'equipment_items.id')
+                ->leftJoin('equipment', 'borrowed_equipment.item_id', '=', 'equipment.id')
+                ->where('office_requests.id', $id)
+                ->select(
+                    'office_requests.*',
+                    'equipment.item as equipment_item',
+                    'borrowed_equipment.item_id',
+                    'borrowed_equipment.equipment_serial_id',
+                    'equipment_items.serial_no as equipment_serial',
+                    'equipment_items.status as equipment_status',
+                    'equipment_items.note as equipment_notes'
+                )
+                ->get();
+
+            return response()->json($requestDetails);
+            // dd($requestDetails);
+        }
+        // return view('office.transactions.details', compact('requestDetails'));
+    }
+
+    public function view_details($id)
+    {
+        $request = DB::table('office_requests')
+            ->where('id', $id)
+            ->select('item_type')
+            ->first();
+
+        if ($request && $request->item_type === 'Equipments') {
+            $requestDetails = DB::table('office_requests')
+                ->leftJoin('borrowed_equipment', 'office_requests.id', '=', 'borrowed_equipment.office_requests_id')
+                ->leftJoin('equipment_items', 'borrowed_equipment.equipment_serial_id', '=', 'equipment_items.id')
+                ->leftJoin('equipment', 'borrowed_equipment.item_id', '=', 'equipment.id')
+                ->where('office_requests.id', $id)
+                ->select(
+                    'office_requests.*',
+                    'equipment.item as equipment_item',
+                    'borrowed_equipment.item_id',
+                    'borrowed_equipment.equipment_serial_id',
+                    'equipment_items.serial_no as equipment_serial',
+                    'equipment_items.note as equipment_notes'
+
+                )
+                ->get();
+
+            // dd($requestDetails);
+        }
+        return view('office.transactions.details', compact('requestDetails'));
+    }
+
     public function decisions(Request $request)
     {
         $request->validate([
@@ -129,62 +226,57 @@ class TransactionOfficeController extends Controller
             'status' => 'required|string|in:Approved,Declined,Received,Returned,Not Returned,Damaged,Repaired,XXX',
         ]);
 
-        try {
+        $requestItem = OfficeRequest::findOrFail($request->id);
+        if ($requestItem->item_type === "Equipments") {
+            $borrowedEquipment = BorrowedEquipment::with('items')->where('office_requests_id', $request->id)->get();
+            $initialItems = [];
+            $intialItemname = "";
+            $itemType = $requestItem->item_type;
+
+            foreach ($borrowedEquipment as $item) {
+                $initialItems[] = $item->equipment_serial_id;
+                $intialItemname = $item->item;
+            }
+            if ($requestItem->status === "Pending") {
+                $requestItem->status = $request->status;
+                $requestItem->save();
+
+                if (in_array($request->status, ['Approved', 'Declined', 'Received', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
+                    $usersWithRole = User::role('user')->where('id', $requestItem->requested_by)->get();
+                    $message = "The {$itemType}\n'{$intialItemname}' has been {$requestItem->status}.";
+                    Notification::send($usersWithRole, new UserNotifications($message, $initialItems, $itemType));
+                }
+            }
+
+            if ($requestItem->status === "Approved") {
+                $requestItem->status = $request->status;
+                $requestItem->save();
+            }
+
+            if ($requestItem->status === "Received") {
+                $requestItem->status = $request->status;
+                $requestItem->save();
+            }
+
+
+            return response()->json(['message' => 'Status updated successfully!'], 200);
+        } else if ($requestItem->item_type === "Supplies") {
             $requestItem = OfficeRequest::findOrFail($request->id);
             $itemType = $requestItem->item_type;
             $itemId = $requestItem->item_id;
             $quantityRequested = $requestItem->quantity_requested;
-            $requestItemStataus = $requestItem->status;
-            if ($requestItem->status === 'Approved' && $request->status === 'Received') {
-                $requestItem->status = 'Received';
-            } elseif (in_array($request->status, ['Approved', 'Declined', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
+
+            $item = Supplies::findOrFail($itemId);
+            $itemName = $item->item;
+            if ($request->status === 'Approved') {
                 $requestItem->status = $request->status;
-            } else {
-                return response()->json(['error' => 'Invalid status transition'], 400);
+                $requestItem->save();
+            } else if ($request->status === 'Received') {
+                $requestItem->status = "Received";
+                $item->quantity -= $quantityRequested;
+                $item->save();
+                $requestItem->save();
             }
-
-            $item = null;
-            $itemName = '';
-
-            switch ($itemType) {
-                case 'Supplies':
-                    $item = Supplies::findOrFail($itemId);
-                    $itemName = $item->item;
-                    if ($request->status === 'Approved') {
-                        $requestItemStataus = 'Approved';
-                        $item->save();
-                    } else if ($request->status  === 'Received') {
-                        $item->quantity -= $quantityRequested;
-                    }
-                    $item->save();
-                    break;
-
-                case 'Equipments':
-                    $item = Equipment::findOrFail($itemId);
-                    $itemName = $item->item;
-                    if ($request->status === 'Returned') {
-                        $item->quantity += $quantityRequested;
-                    } else if ($request->status === 'Received') {
-                        $item->quantity -= $quantityRequested;
-                    } elseif ($request->status === 'Damaged') {
-                        $item->save();
-                    } elseif ($request->status === 'Repaired') {
-                        $item->quantity += $quantityRequested;
-                    } elseif ($request->status === 'XXX') {
-                        $item->save();
-                    } elseif ($request->status === 'Approved') {
-                        $item->save();
-                    } else {
-                        $item->save();
-                    }
-                    $item->save();
-                    break;
-
-                default:
-                    return response()->json(['error' => 'Invalid item type'], 400);
-            }
-
-            $requestItem->save();
 
             if (in_array($request->status, ['Approved', 'Declined', 'Received', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
                 $usersWithRole = User::role('user')->where('id', $requestItem->requested_by)->get();
@@ -193,9 +285,76 @@ class TransactionOfficeController extends Controller
             }
 
             return response()->json(['message' => 'Status updated successfully!'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Unable to update status', 'message' => $e->getMessage()], 500);
         }
+
+
+        // try {
+        //     $requestItem = OfficeRequest::findOrFail($request->id);
+        //     $itemType = $requestItem->item_type;
+        //     $itemId = $requestItem->item_id;
+        //     $quantityRequested = $requestItem->quantity_requested;
+        //     $requestItemStataus = $requestItem->status;
+        //     if ($requestItem->status === 'Approved' && $request->status === 'Received') {
+        //         $requestItem->status = 'Received';
+        //     } elseif (in_array($request->status, ['Approved', 'Declined', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
+        //         $requestItem->status = $request->status;
+        //     } else {
+        //         return response()->json(['error' => 'Invalid status transition'], 400);
+        //     }
+
+        //     $item = null;
+        //     $itemName = '';
+
+        //     switch ($itemType) {
+        //         case 'Supplies':
+        //             $item = Supplies::findOrFail($itemId);
+        //             $itemName = $item->item;
+        //             if ($request->status === 'Approved') {
+        //                 $requestItemStataus = 'Approved';
+        //                 $item->save();
+        //             } else if ($request->status  === 'Received') {
+        //                 $item->quantity -= $quantityRequested;
+        //             }
+        //             $item->save();
+        //             break;
+
+        //         case 'Equipments':
+        //             $item = Equipment::findOrFail($itemId);
+        //             $itemName = $item->item;
+        //             if ($request->status === 'Returned') {
+        //                 $item->quantity += $quantityRequested;
+        //             } else if ($request->status === 'Received') {
+        //                 $item->quantity -= $quantityRequested;
+        //             } elseif ($request->status === 'Damaged') {
+        //                 $item->save();
+        //             } elseif ($request->status === 'Repaired') {
+        //                 $item->quantity += $quantityRequested;
+        //             } elseif ($request->status === 'XXX') {
+        //                 $item->save();
+        //             } elseif ($request->status === 'Approved') {
+        //                 $item->save();
+        //             } else {
+        //                 $item->save();
+        //             }
+        //             $item->save();
+        //             break;
+
+        //         default:
+        //             return response()->json(['error' => 'Invalid item type'], 400);
+        //     }
+
+        //     $requestItem->save();
+
+        //     if (in_array($request->status, ['Approved', 'Declined', 'Received', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
+        //         $usersWithRole = User::role('user')->where('id', $requestItem->requested_by)->get();
+        //         $message = "The {$itemType}\n'{$itemName}' has been {$requestItem->status}.";
+        //         Notification::send($usersWithRole, new UserNotifications($message, $itemId, $itemType));
+        //     }
+
+        //     return response()->json(['message' => 'Status updated successfully!'], 200);
+        // } catch (\Exception $e) {
+        //     return response()->json(['error' => 'Unable to update status', 'message' => $e->getMessage()], 500);
+        // }
     }
 
 
@@ -312,5 +471,46 @@ class TransactionOfficeController extends Controller
         }
 
         return response()->json(['message' => 'Borrowers notified successfully.']);
+    }
+
+
+    public function selectedItems($id)
+    {
+        $equipmentItems = EquipmentItems::where('equipment_id', $id)
+            ->where('status', '!=', 'Queue')
+            ->get();
+        return response()->json($equipmentItems);
+    }
+
+
+    public function submitAddedNotes(Request $request)
+    {
+        $validated = $request->validate([
+            'item_id' => 'required|integer|exists:equipment_items,id',
+            'notes' => 'required|string',
+        ]);
+
+        $itemToBeMarkAsDamaged = EquipmentItems::find($validated['item_id']);
+        $itemToBeMarkAsDamaged->note = $validated['notes'];
+        $itemToBeMarkAsDamaged->save();
+
+        return response()->json(['message' => 'Item marked as damaged successfully!', "sucess" => true]);
+    }
+
+
+    public function submitGoodCondition(Request $request)
+    {
+        $validated = $request->validate([
+            'selected_items' => 'required|array',
+            'selected_items.*' => 'exists:equipment_items,id',
+        ]);
+
+        foreach ($validated['selected_items'] as $itemId) {
+            $equipmentItem = EquipmentItems::find($itemId);
+            $equipmentItem->status = 'Good';
+            $equipmentItem->save();
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Items marked as good condition successfully.']);
     }
 }

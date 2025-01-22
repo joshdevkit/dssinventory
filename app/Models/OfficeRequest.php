@@ -16,6 +16,10 @@ class OfficeRequest extends Model
         return $this->morphTo();
     }
 
+    public function borrowedItems()
+    {
+        return $this->hasMany(BorrowedEquipment::class, 'office_requests_id');
+    }
 
     public function equipment()
     {

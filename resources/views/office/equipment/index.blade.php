@@ -18,9 +18,6 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Office Equipment</h1>
                     </div>
-                    <div class="col-sm-6">
-
-                    </div>
                 </div>
             </div>
         </section>
@@ -52,8 +49,6 @@
                                             <th>Unit</th>
                                             <th>Name of Equipment</th>
                                             <th>Description/Specification</th>
-                                            <th>Location/Room</th>
-                                            <th>Date Delivered</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -61,12 +56,12 @@
                                         @forelse($equipments as $equipment)
                                             <tr data-entry-id="{{ $equipment->id }}">
                                                 <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $equipment->quantity }}</td>
+                                                <td>{{ $equipment->items->count() }}</td>
                                                 <td>{{ $equipment->unit }}</td>
                                                 <td>{{ $equipment->item }}</td>
                                                 <td>{{ $equipment->brand_description }}</td>
-                                                <td>{{ $equipment->location }}</td>
-                                                <td>{{ $equipment->date_delivered }}</td>
+                                                {{-- <td>{{ $equipment->location }}</td>
+                                                <td>{{ $equipment->date_delivered }}</td> --}}
                                                 <td>
                                                     <div class="btn-group btn-group-sm" role="group"
                                                         aria-label="Basic example">

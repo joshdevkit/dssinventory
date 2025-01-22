@@ -12,9 +12,19 @@ class EquipmentController extends Controller
 {
     public function index()
     {
-        $equipments = Equipment::with('items')->get();
+        $equipments = Equipment::with(['items' => function ($query) {
+            $query->where('status', '!=', 'Queue');
+        }])->get();
 
         return view('office.equipment.index', compact('equipments'));
+    }
+
+
+
+    public function equipment_items()
+    {
+        $equipmentItems = EquipmentItems::with('equipment')->get();
+        return view('office.equipment.items', compact('equipmentItems'));
     }
 
     /**

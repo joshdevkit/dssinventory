@@ -13,4 +13,10 @@ class EquipmentItems extends Model
         'equipment_id',
         'serial_no'
     ];
+
+
+    public function equipment()
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id');
+    }
 }

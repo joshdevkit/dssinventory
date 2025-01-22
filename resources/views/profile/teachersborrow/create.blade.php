@@ -222,8 +222,8 @@
 
                 $.each(items, function(index, item) {
                     itemRow += `<option value="${item.id}" data-brand="${item.brand}" data-quantity="${item.count}">
-                                    ${item.equipment} (${item.count} available)
-                                </option>`;
+                                            ${item.equipment} (${item.count} available)
+                                            </option>`;
                 });
 
                 itemRow += `
