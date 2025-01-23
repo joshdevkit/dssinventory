@@ -78,6 +78,7 @@ Route::middleware(['auth', 'role:site secretary'])->group(function () {
     //mark each items as damage
 
     Route::post('/office/submit-added-notes', [TransactionOfficeController::class, 'submitAddedNotes'])->name('office.submit-added-notes');
+    Route::post('/office/submit-mark-damaged', [TransactionOfficeController::class, 'submitMarkAsDamaged'])->name('office.submit-as-damaged');
     Route::post('/office/submit-selected-items', [TransactionOfficeController::class, 'submitGoodCondition'])->name('office.submit-good-items');
 
 

@@ -68,6 +68,7 @@ class TransactionOfficeController extends Controller
 
     public function store(Request $request)
     {
+
         $data = $request->validate([
             'items' => 'required|array',
             'items.*.item_id' => 'required',
@@ -75,8 +76,17 @@ class TransactionOfficeController extends Controller
             'category' => 'required|string',
         ]);
 
+        $totalCount = 0;
+
+        foreach ($request->all() as $key => $value) {
+            if (str_starts_with($key, 'serial-') && is_array($value)) {
+                $totalCount += count($value);
+            }
+        }
+
         if ($data['category'] === 'Supplies') {
             foreach ($request->input('items') as $item) {
+                $item_id = $item['item_id'];
                 OfficeRequest::create([
                     'item_id' => $item['item_id'],
                     'item_type' => $request->input('category'),
@@ -91,7 +101,7 @@ class TransactionOfficeController extends Controller
 
             $officeRequest = OfficeRequest::create([
                 'item_type' => $request->input('category'),
-                'quantity_requested' =>  count($request->input('items')),
+                'quantity_requested' =>  $totalCount,
                 'requested_by' => Auth::id(),
                 'purpose' => $request->input('purpose'),
             ]);
@@ -424,7 +434,21 @@ class TransactionOfficeController extends Controller
         $itemToBeMarkAsDamaged->note = $validated['notes'];
         $itemToBeMarkAsDamaged->save();
 
-        return response()->json(['message' => 'Item marked as damaged successfully!', "sucess" => true]);
+        return response()->json(['success' => true, 'message' => 'Item notes added!'], 200);
+    }
+
+
+    public function submitMarkAsDamaged(Request $request)
+    {
+        $validated = $request->validate([
+            'item_id' => 'required|integer|exists:equipment_items,id',
+        ]);
+
+        $itemToBeMarkAsDamaged = EquipmentItems::find($validated['item_id']);
+        $itemToBeMarkAsDamaged->status = "Damaged";
+        $itemToBeMarkAsDamaged->save();
+
+        return response()->json(['success' => true, 'message' => 'Item marked as damaged successfully!'], 200);
     }
 
 

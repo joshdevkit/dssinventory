@@ -212,9 +212,10 @@
                     <div class="list-group" id="items_display">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="select-items-good">Select items you wish to mark
-                        as good</button>
+                <div class="modal-footer" id="items_button">
+                    {{-- <button type="button" class="btn btn-primary d-none" id="select-items-good">Select items you wish to
+                        mark
+                        as good</button> --}}
                     <button type="button" class="btn btn-success d-none" id="submit-selected-items">Submit
                         Selected</button>
                     <button type="button" class="btn btn-danger d-none" id="cancel-select-items">Cancel</button>
@@ -249,6 +250,7 @@
     </div>
 @endsection
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             var selectedStatus = '';
@@ -303,40 +305,59 @@
                                 '<div class="list-group-item text-center text-muted">No items found</div>'
                             );
                         } else {
-                            const items = response; // Save the response data to a variable
+                            const items = response;
+                            let showSelectItemsGoodButton =
+                                false;
 
                             items.forEach(function(item) {
                                 console.log(item);
 
                                 var itemHtml = `
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="list-group-item d-flex justify-content-between align-items-center ${item.equipment_status === 'Queue' ? '' : (item.equipment_status === 'Good' ? 'bg-info' : 'bg-danger')}">
                                     <div class="item-details">
                                         <strong>Equipment Item:</strong> ${item.equipment_item} <br>
                                         <strong>Serial No:</strong> ${item.equipment_serial}
                                     </div>
-                            `;
+                                    `;
+
                                 if (item.status === 'Returned' && item
                                     .equipment_status === "Queue") {
                                     itemHtml += `
-                                <div>
-                                    <button class="btn btn-danger btn-sm mark-damaged" data-item-id="${item.equipment_serial_id}">
-                                        <i class="fas fa-times-circle"></i> Damaged
-                                    </button>
-                                `;
+                                    <div class="ml-auto">
+                                        <button class="btn btn-danger btn-sm mark-damaged" data-item-id="${item.equipment_serial_id}">
+                                            <i class="fas fa-times-circle"></i> Damaged
+                                        </button>
+                                    `;
                                     if (item.equipment_notes === null && item
                                         .equipment_status != "Good") {
                                         itemHtml += `
-                                    <button class="btn btn-info btn-sm add-note" data-item-id="${item.equipment_serial_id}">
-                                        <i class="far fa-copy"></i> Add Notes
-                                    </button>
-                                `;
+                                        <button class="btn btn-info btn-sm add-note" data-item-id="${item.equipment_serial_id}">
+                                            <i class="far fa-copy"></i> Add Notes
+                                        </button>
+                                        `;
                                     }
                                     itemHtml += `</div>`;
                                 }
+
                                 itemHtml += '</div>';
                                 $('#items_display').append(itemHtml);
+
+                                if (item.status === 'Returned') {
+                                    showSelectItemsGoodButton = true;
+                                }
+
                             });
 
+                            // Add the button only if the flag is true
+                            if (showSelectItemsGoodButton) {
+                                const buttonHtml = `
+                                    <button type="button" class="btn btn-primary" id="select-items-good">
+                                        Select items you wish to mark as good
+                                    </button>
+                                `;
+                                $('#items_button').append(
+                                    buttonHtml);
+                            }
 
 
 
@@ -446,6 +467,49 @@
                 $(this).prop('disabled', true);
             });
 
+            $(document).on('click', '.mark-damaged', function() {
+                var itemId = $(this).data('item-id');
+                var itemDiv = $(this).closest('.list-group-item');
+
+                Swal.fire({
+                    title: "Mark as Damaged?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, Proceed!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '{{ route('office.submit-as-damaged') }}',
+                            method: "POST",
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                item_id: itemId
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "Success!",
+                                        text: response.message,
+                                        icon: "success"
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: "Error!",
+                                        text: response.message,
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                        })
+                    }
+                });
+            })
+
             $(document).on('click', '.cancel-added-notes', function() {
                 var itemId = $(this).data('item-id');
                 $(`#note-added-section-${itemId}`).remove();
@@ -464,20 +528,18 @@
                         notes: notes,
                         _token: '{{ csrf_token() }}'
                     },
+                    dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            $(`#note-added-section-${itemId}`).remove();
-                            $(`button.add-note[data-item-id="${itemId}"]`).prop('disabled',
-                                false);
+                            Swal.fire({
+                                title: "Success",
+                                text: response.message,
+                                icon: "success"
+                            });
                             setTimeout(() => {
                                 location.reload();
                             }, 1500);
-                        } else {
-                            alert('Failed to submit notes.');
                         }
-                    },
-                    error: function(response) {
-                        alert('Failed to submit notes.');
                     }
                 });
             });
