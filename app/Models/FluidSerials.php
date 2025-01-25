@@ -10,4 +10,9 @@ class FluidSerials extends Model
     use HasFactory;
 
     protected $fillable = ['product_id', 'serial_no', 'condition'];
+
+    public function parent()
+    {
+        return $this->belongsTo(FluidSerials::class, 'product_id');
+    }
 }

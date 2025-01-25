@@ -25,4 +25,9 @@ class OfficeRequest extends Model
     {
         return $this->belongsTo(Equipment::class, 'item_id');
     }
+
+    public function requestBy()
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
 }

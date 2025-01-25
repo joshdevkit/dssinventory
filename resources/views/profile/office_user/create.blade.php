@@ -72,7 +72,8 @@
                                                 <div
                                                     class="col-md-{{ session('category') == 'equipments' ? '3' : '6' }} form-group">
                                                     <label for="item">Item</label>
-                                                    <select id="selectedInitial" class="form-control selected-equipment"
+                                                    <select id="selectedInitial"
+                                                        class="form-control selected-equipment item-select"
                                                         name="items[0][item_id]" required>
                                                         <option value="">Select an item</option>
                                                         @if (session('items'))
@@ -85,7 +86,6 @@
                                                         @else
                                                             <option value="">No items available</option>
                                                         @endif
-
                                                     </select>
                                                 </div>
                                                 @if (session('category') == 'equipments')
@@ -94,7 +94,6 @@
                                                         <select class="form-control serial-select" name="serial-0[]"
                                                             id="serial-0" multiple>
                                                             <option value="">Items</option>
-
                                                         </select>
                                                     </div>
                                                 @endif
@@ -108,8 +107,6 @@
                                                             id="hidden-qty-0" value="0">
                                                     </div>
                                                 @endif
-
-
                                                 <div class="col-md-3 form-group align-self-end">
                                                     <x-danger-button type="button"
                                                         class="btn btn-danger remove-item">Remove</x-danger-button>
@@ -123,6 +120,7 @@
                                                 Another Item</x-primary-button>
                                         </div>
                                     </div>
+
 
                                     <div class="form-group mt-3">
                                         <label for="purpose">Purpose</label>
@@ -145,6 +143,7 @@
 @section('sctipts')
     <script>
         $(document).ready(function() {
+
             $('#serial-0').select2({
                 placeholder: "Select Serial",
                 allowClear: true,
@@ -152,13 +151,16 @@
             });
 
             let itemIndex = 1;
-
+            let selectedSerials = {}; // Object to keep track of selected serial numbers by item ID
 
             $(document).on('change', '.selected-equipment', function() {
                 var $this = $(this);
                 var selectedOption = $this.find('option:selected');
                 var itemId = selectedOption.val();
 
+                if (!selectedSerials[itemId]) {
+                    selectedSerials[itemId] = [];
+                }
 
                 $.ajax({
                     url: '{{ route('office_user.items-selected', ['']) }}/' + itemId,
@@ -167,20 +169,43 @@
                         _token: '{{ csrf_token() }}',
                     },
                     success: function(response) {
+
                         var serialSelect = $this.closest('.item-row').find('.serial-select');
                         serialSelect.empty();
                         serialSelect.append('<option value="">Items</option>');
-                        response.forEach(function(item) {
+
+                        let availableSerials = response.filter(item => {
+                            return !selectedSerials[itemId].includes(item.id);
+                        });
+
+                        availableSerials.forEach(function(item) {
                             serialSelect.append(
                                 `<option value="${item.id}">${item.serial_no}</option>`
                             );
                         });
+
+                        serialSelect.select2({
+                            placeholder: "Select Serial",
+                            allowClear: true,
+                            width: '100%'
+                        });
                     }
-                })
+                });
+            });
 
+            $(document).on('change', '.serial-select', function() {
+                var $this = $(this);
+                var selectedSerialsArray = $this.val() || [];
+                var itemId = $this.closest('.form-row').find('.selected-equipment').val();
 
-            })
-            //prevent negative input
+                if (!selectedSerials[itemId]) {
+                    selectedSerials[itemId] = [];
+                }
+
+                // Combine the current selected serial numbers with any previously selected ones
+                selectedSerials[itemId] = selectedSerialsArray;
+            });
+
             $(".quantity-input").on("input", function() {
                 if ($(this).val() <= 0) {
                     $(this).val(1);
@@ -189,7 +214,7 @@
 
             function updateMaxQuantity(selectElement) {
                 const selectedOption = $(selectElement).find('option:selected');
-                const maxQuantity = selectedOption.data('quantity'); // Access data-quantity attribute
+                const maxQuantity = selectedOption.data('quantity');
 
                 if (maxQuantity !== undefined) {
                     const itemIndex = $(selectElement).closest('.item-row').find('input.quantity-input').attr('id')
@@ -200,8 +225,6 @@
                 }
             }
 
-
-            // Bind the change event to handleitem selection
             function handleSelectChange(selectElement) {
                 selectElement.on('change', function() {
                     updateMaxQuantity($(this));
@@ -221,71 +244,76 @@
                 });
             }
 
-            const initialSelect = $('#items select[name="items[0][item_id]"]');
 
-            updateMaxQuantity(initialSelect);
+            const initialSelect = $('#items select[name="items[0][item_id]"]');
 
             handleSelectChange(initialSelect);
 
-            handleQuantityValidation();
-
             $('.add-item').on('click', function() {
                 const itemRow = `
-                <div class="item-row">
-                    <div class="form-row">
-                        <div class="col-md-{{ session('category') == 'equipments' ? '3' : '6' }} form-group">
-                            <label for="item">Item</label>
-                            <select class="form-control item-select selected-equipment" name="items[${itemIndex}][item_id]" required>
-                                <option value="">Select an item</option>
-                                @if (session('items') && count(session('items')) > 0)
-                                    @foreach (session('items') as $item)
-                                        <option value="{{ $item['id'] }}" data-quantity="{{ $item['count'] }}">{{ $item['item'] }} ({{ $item['count'] }} available)</option>
-                                    @endforeach
-                                @else
-                                    <option value="">No items available</option>
-                                @endif
-                            </select>
-                        </div>
-                        @if (session('category') == 'equipments')
-                            <div class="col-md-6 form-group">
-                                <label for="item">Equipment Items</label>
-                                    <select class="form-control serial-select" name="serial-${itemIndex}[]" id="serial-${itemIndex}" multiple>
-                                        <option value="">Items</option>
-
-                                    </select>
-                            </div>
+        <div class="item-row">
+            <div class="form-row">
+                <div class="col-md-{{ session('category') == 'equipments' ? '3' : '6' }} form-group">
+                    <label for="item">Item</label>
+                    <select class="form-control item-select selected-equipment" name="items[${itemIndex}][item_id]" required>
+                        <option value="">Select an item</option>
+                        @if (session('items') && count(session('items')) > 0)
+                            @foreach (session('items') as $item)
+                                <option value="{{ $item['id'] }}" data-quantity="{{ $item['count'] }}">
+                                    {{ $item['item'] }} ({{ $item['count'] }} available)
+                                </option>
+                            @endforeach
+                        @else
+                            <option value="">No items available</option>
                         @endif
-                        @if (session('category') == 'supplies')
-                            <div class="col-md-3 form-group">
-                                <label for="quantity">Quantity</label>
-                                    <input type="number" class="form-control quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" required data-max-quantity="0" min="0">
-                                        <input type="hidden" name="items[${itemIndex}][actual_quantity]" id="hidden-qty-${itemIndex}" value="0">
-                            </div>
-                        @endif
-                        <div class="col-md-3 form-group align-self-end">
-                            <x-danger-button type="button" class="btn btn-danger remove-item">Remove</x-danger-button>
-                        </div>
-                    </div>
+                    </select>
                 </div>
-                `;
+                @if (session('category') == 'equipments')
+                    <div class="col-md-6 form-group">
+                        <label for="item">Equipment Items</label>
+                        <select class="form-control serial-select" name="serial-${itemIndex}[]" id="serial-${itemIndex}" multiple>
+                            <option value="">Items</option>
+                        </select>
+                    </div>
+                @endif
+                @if (session('category') == 'supplies')
+                    <div class="col-md-3 form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" class="form-control quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" required data-max-quantity="0" min="0">
+                        <input type="hidden" name="items[${itemIndex}][actual_quantity]" id="hidden-qty-${itemIndex}" value="0">
+                    </div>
+                @endif
+                <div class="col-md-3 form-group align-self-end">
+                    <x-danger-button type="button" class="btn btn-danger remove-item">Remove</x-danger-button>
+                </div>
+            </div>
+        </div>
+    `;
 
                 $('#items').append(itemRow);
+
                 $('#serial-' + itemIndex).select2({
                     placeholder: "Select Serial",
                     allowClear: true,
-                    width: '100%',
+                    width: '100%'
                 });
-                const newSelect = $(`#items select[name="items[${itemIndex}][item_id]"]`);
-
-                handleSelectChange(newSelect);
-                handleQuantityValidation();
 
                 itemIndex++;
             });
 
 
             $(document).on('click', '.remove-item', function() {
-                $(this).closest('.item-row').remove();
+                var $this = $(this);
+                var serialSelect = $this.closest('.item-row').find('.serial-select');
+                var itemId = $this.closest('.form-row').find('.selected-equipment').val();
+                var selectedSerialsArray = serialSelect.val();
+
+                if (itemId && selectedSerials[itemId]) {
+                    selectedSerials[itemId] = selectedSerials[itemId].filter(serial => !selectedSerialsArray
+                        .includes(serial));
+                }
+
+                $this.closest('.item-row').remove();
             });
         });
     </script>

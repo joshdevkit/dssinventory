@@ -5,10 +5,15 @@ namespace App\Http\Controllers\LaboratoryPanel;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ComputerEngineering;
+use App\Models\ComputerEngineeringSerial;
 use App\Models\Construction;
+use App\Models\ConstructionSerials;
 use App\Models\Fluid;
+use App\Models\FluidSerials;
 use App\Models\Surveying;
+use App\Models\SurveyingSerials;
 use App\Models\Testing;
+use App\Models\TestingSerials;
 use Illuminate\Support\Facades\DB;
 
 class LaboratoryController extends Controller
@@ -105,5 +110,62 @@ class LaboratoryController extends Controller
         ];
 
         return view('laboratory.dashboardo', compact('totals', 'requisitions'));
+    }
+
+    public function equipment_items()
+    {
+        $constructionItems = ConstructionSerials::with('parent')->get()->map(function ($item) {
+            return [
+                'type' => 'Construction',
+                'equipment' => $item->parent->equipment ?? null, // Ensure parent or equipment is not null
+                'serial_no' => $item->serial_no,
+                'condition' => $item->condition,
+            ];
+        });
+
+        $fluidsItems = FluidSerials::with('parent')->get()->map(function ($item) {
+            return [
+                'type' => 'Fluids',
+                'equipment' => $item->parent->equipment ?? null,
+                'serial_no' => $item->serial_no,
+                'condition' => $item->condition,
+            ];
+        });
+
+        $surveyingItems = SurveyingSerials::with('parent')->get()->map(function ($item) {
+            return [
+                'type' => 'Surveying',
+                'equipment' => $item->parent->equipment ?? null,
+                'serial_no' => $item->serial_no,
+                'condition' => $item->condition,
+            ];
+        });
+
+        $testingItems = TestingSerials::with('parent')->get()->map(function ($item) {
+            return [
+                'type' => 'Testing',
+                'equipment' => $item->parent->equipment ?? null,
+                'serial_no' => $item->serial_no,
+                'condition' => $item->condition,
+            ];
+        });
+
+        $computerEngineeringItems = ComputerEngineeringSerial::with('parent')->get()->map(function ($item) {
+            return [
+                'type' => 'Computer Engineering',
+                'equipment' => $item->parent->equipment ?? null,
+                'serial_no' => $item->serial_no,
+                'condition' => $item->condition,
+            ];
+        });
+
+        $items = $constructionItems
+            ->concat($fluidsItems)
+            ->concat($surveyingItems)
+            ->concat($testingItems)
+            ->concat($computerEngineeringItems);
+
+
+        return view('laboratory.equipment-items.index', compact('items'));
     }
 }

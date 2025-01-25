@@ -118,25 +118,29 @@
                                     <ul>
                                         @foreach ($data['items'] as $item)
                                             @php
-                                                $itemDetail = $data['item_details']->firstWhere(
+                                                $itemDetails = $data['item_details']->firstWhere(
                                                     'id',
-                                                    $item->equipment_id,
+                                                    $item->equipment_serial_id,
                                                 );
                                             @endphp
-                                            <li>
-                                                <strong>{{ $itemDetail->equipment }}</strong><br>
-                                                <strong>Description:
-                                                    {{ $itemDetail->description ?? 'NA' }}</strong><br>
-                                                <strong>Brand:</strong> {{ $itemDetail->brand }} <br>
-                                                <strong>Quantity:</strong> {{ $item->quantity }} <br>
-                                                <strong>Condition during borrow:</strong>
-                                                {{ $item->remarks }}
-                                            </li>
+                                            @if ($itemDetails)
+                                                <li>
+                                                    <strong>{{ $itemDetails->equipment ?? 'N/A' }}</strong><br>
+                                                    <strong>Description:
+                                                        {{ $itemDetails->description ?? 'N/A' }}</strong><br>
+                                                    <strong>Brand:</strong> {{ $itemDetails->brand ?? 'N/A' }} <br>
+                                                    <strong>Condition during borrow:</strong> {{ $item->remarks }} <br>
+                                                    <strong>Product Serial:</strong>
+                                                    {{ $itemDetails->serial_no ?? 'N/A' }}<br><br>
+                                                </li>
+                                            @endif
                                         @endforeach
                                     </ul>
                                 @else
                                     <p>No items found.</p>
                                 @endif
+
+
                             </div>
                             <div class="col-md-4">
                                 <h4><strong>Students</strong></h4>

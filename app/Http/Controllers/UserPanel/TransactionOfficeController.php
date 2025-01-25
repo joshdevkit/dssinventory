@@ -11,6 +11,7 @@ use App\Models\EquipmentItems;
 use App\Models\OfficeRequest;
 use App\Models\Supplies;
 use App\Models\User;
+use App\Notifications\ApproveOfficeMultipleRequest;
 use App\Notifications\BorrowerNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -190,7 +191,8 @@ class TransactionOfficeController extends Controller
                     'borrowed_equipment.equipment_serial_id',
                     'equipment_items.serial_no as equipment_serial',
                     'equipment_items.status as equipment_status',
-                    'equipment_items.note as equipment_notes'
+                    'equipment_items.note as equipment_notes',
+                    'borrowed_equipment.borrow_status as borrowed_equipment_status'
                 )
                 ->get();
 
@@ -466,5 +468,121 @@ class TransactionOfficeController extends Controller
         }
 
         return response()->json(['status' => 'success', 'message' => 'Items marked as good condition successfully.']);
+    }
+
+
+    public function approveAllSelected(Request $request)
+    {
+        // Retrieve the borrowed equipment based on selected item IDs
+        $borrowedEquipment = BorrowedEquipment::whereIn('item_id', $request->input('selectedItems'))->get();
+
+        if ($borrowedEquipment->isEmpty()) {
+            return response()->json(['message' => 'No items selected.'], 400);
+        }
+
+        $officeRequisitionRequestId = $borrowedEquipment[0]->office_requests_id;
+
+        // Approve selected items
+        $equipments = [];
+        foreach ($borrowedEquipment as $equipment) {
+            $equipment->borrow_status = 'Approved';
+            $equipment->save();
+            $equipments[] = $equipment;
+        }
+
+        // Decline unselected items
+        BorrowedEquipment::where('office_requests_id', $officeRequisitionRequestId)
+            ->whereNotIn('item_id', $request->input('selectedItems'))
+            ->update(['borrow_status' => 'Declined']);
+
+        $extractedEquipmentId = [];
+        $equipmentSerialId = [];
+
+        // Extract equipment and serial IDs from the approved equipments array
+        foreach ($equipments as $ExtractedEquipment) {
+            $extractedEquipmentId[] = $ExtractedEquipment->item_id;
+            $equipmentSerialId[] = $ExtractedEquipment->equipment_serial_id;
+        }
+
+        // Get the selected equipment based on extracted equipment IDs
+        $SlectedBorrowedEquipmentToApproved = Equipment::whereIn('id', $extractedEquipmentId)->get();
+
+        // Create an associative array to match equipment ID with item name
+        $itemMap = [];
+        foreach ($SlectedBorrowedEquipmentToApproved as $equipment) {
+            $itemMap[$equipment->id] = $equipment->item;
+        }
+
+        // Get the serial numbers based on extracted serial IDs
+        $serials = EquipmentItems::whereIn('id', $equipmentSerialId)->get();
+        $serialNos = [];
+
+        // Populate the itemSelected array with item names and their respective serial numbers
+        foreach ($serials as $itemSerials) {
+            $serialNos[] = $itemMap[$itemSerials->equipment_id] . " (Serial No: " . $itemSerials->serial_no . ")";
+        }
+
+        // Format the serial numbers into a single string
+        $formattedSerials = implode(", ", $serialNos);
+
+        // Get the declined items based on the request
+        $declinedItems = BorrowedEquipment::where('office_requests_id', $officeRequisitionRequestId)
+            ->whereNotIn('item_id', $request->input('selectedItems'))
+            ->get();
+
+        $declinedItemDetails = [];
+        foreach ($declinedItems as $declinedItem) {
+            $equipment = Equipment::find($declinedItem->item_id);
+            $itemSerial = EquipmentItems::find($declinedItem->equipment_serial_id);
+            $declinedItemDetails[] = $equipment->item . " (Serial No: " . $itemSerial->serial_no . ")";
+        }
+
+        // Format the declined items into a single string
+        $formattedDeclinedItems = implode(", ", $declinedItemDetails);
+
+        // Construct the message
+        $userFromRequest = OfficeRequest::find($officeRequisitionRequestId);
+        $userId = $userFromRequest->requested_by;
+        $user = User::find($userId);
+
+        $message = "Hi {$user->name}, your request: {$formattedSerials} has been Approved!";
+
+        if (!empty($formattedDeclinedItems)) {
+            $message .= " The following items have been Declined: {$formattedDeclinedItems}.";
+        }
+
+        $user->notify(new ApproveOfficeMultipleRequest($message));
+
+        return response()->json(["success" => true, 'message' => 'Selected items have been approved and others declined.']);
+    }
+
+
+
+    public function RecievedAllSelected(Request $request)
+    {
+        // dd($request);
+        $borrowedEquipment = BorrowedEquipment::whereIn('item_id', $request->input('selected_items'))->get();
+        // dd($borrowedEquipment);
+        foreach ($borrowedEquipment as $equipment) {
+            $equipment->borrow_status = 'Received';
+            $equipment->save();
+        }
+
+        return response()->json(["success" => true, 'message' => 'Selected items have been mark as received.']);
+    }
+
+
+    public function ReturnAllItems(Request $request)
+    {
+        $borrowedEquipment = BorrowedEquipment::where('office_requests_id', $request->input('itemRequisitionId'))->get();
+        foreach ($borrowedEquipment as $item) {
+            if ($item->borrow_status !== 'Declined') {
+                $item->borrow_status = 'Returned';
+                $item->date_returned = now();
+                $item->save();
+            }
+        }
+
+        return response()->json(["success" => true, 'message' => 'Selected items have been mark as returned.']);
     }
 }

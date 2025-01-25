@@ -11,6 +11,7 @@ use App\Models\Fluid;
 use App\Models\FluidSerials;
 use App\Models\OfficeRequest;
 use App\Models\Requisition;
+use App\Models\RequisitionItemsSerial;
 use App\Models\RequisitionsItems;
 use App\Models\RequisitionsItemsStudents;
 use App\Models\Surveying;
@@ -28,6 +29,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class TeacherBorrowController extends Controller
 {
@@ -85,7 +87,6 @@ class TeacherBorrowController extends Controller
     public function selectCategory(Request $request)
     {
         $category = $request->input('category');
-
         if ($category == 'constructions') {
             $items = Construction::with('items')->get()->map(function ($constructionsSerial) {
                 return [
@@ -154,22 +155,21 @@ class TeacherBorrowController extends Controller
 
     public function store(Request $request)
     {
-        dd($request);
+        // dd($request);
         $validated = $request->validate([
-            'dateFiled' => 'required',
-            'dateNeeded' =>  'required',
-            'subject' => 'required',
-            'courseYear' => 'required',
-            'activityTitle' => 'required',
-            'items.*.item_id' => 'required',
-            'items.*.quantity' => 'required',
+            'dateFiled' => 'required|date',
+            'dateNeeded' =>  'required|date',
+            'subject' => 'required|string',
+            'courseYear' => 'required|string',
+            'activityTitle' => 'required|string',
+            'items.*.item_id' => 'required|integer',
+            'items.*.quantity' => 'required|integer',
             'items.*.remarks' => 'required|string',
             'students' => 'required|array',
             'students.*' => 'string',
         ]);
 
         $instructorId = Auth::id();
-
         $requisition = Requisition::create([
             'category' => $request->input('category'),
             'date_time_filed' => $validated['dateFiled'],
@@ -179,14 +179,35 @@ class TeacherBorrowController extends Controller
             'course_year' => $validated['courseYear'],
             'activity' => $validated['activityTitle'],
         ]);
+        $nestedArrayIds = [];
+        foreach ($request->input('items') as $item) {
+            $nestedArrayIds[] = $item["item_id"];
+            if (isset($item["items"]) && is_array($item["items"])) {
+                foreach ($item["items"] as $nestedItem) {
+                    if (!is_array($nestedItem)) {
+                        $nestedArrayIds[] = $nestedItem;
+                    }
+                }
+            }
+        }
 
-        foreach ($validated['items'] as $item) {
-            RequisitionsItems::create([
+        // Insert into RequisitionsItems and RequisitionItemsSerial
+        foreach ($request->input('items') as $item) {
+            $requisitionItem = RequisitionsItems::create([
                 'requisition_id' => $requisition->id,
-                'equipment_id' => $item['item_id'],
                 'quantity' => $item['quantity'],
                 'remarks' => $item['remarks'],
             ]);
+
+            foreach ($item['items'] as $nestedItem) {
+                if (!is_array($nestedItem)) {
+                    RequisitionItemsSerial::create([
+                        'requisition_items_id' => $requisitionItem->id,
+                        'equipment_id' => $item['item_id'], // Use parent item's item_id as equipment_id
+                        'equipment_serial_id' => $nestedItem // Use the nested item value as equipment_serial_id
+                    ]);
+                }
+            }
         }
 
         foreach ($validated['students'] as $student) {
@@ -210,7 +231,6 @@ class TeacherBorrowController extends Controller
     {
         $teacherborrows = TeacherBorrow::all();
         $notifications = Auth::user()->notifications;
-
         $requisitions = DB::table('requisitions')
             ->leftJoin('requisitions_items', 'requisitions.id', '=', 'requisitions_items.requisition_id')
             ->leftJoin('construction', function ($join) {
@@ -218,11 +238,11 @@ class TeacherBorrowController extends Controller
                     ->on('requisitions_items.equipment_id', '=', 'construction.id');
             })
             ->leftJoin('testings', function ($join) {
-                $join->on('requisitions.category', '=', DB::raw("'Testing'"))
+                $join->on('requisitions.category', '=', DB::raw("'Testings'"))
                     ->on('requisitions_items.equipment_id', '=', 'testings.id');
             })
             ->leftJoin('surveyings', function ($join) {
-                $join->on('requisitions.category', '=', DB::raw("'Surveying'"))
+                $join->on('requisitions.category', '=', DB::raw("'Surveyings'"))
                     ->on('requisitions_items.equipment_id', '=', 'surveyings.id');
             })
             ->leftJoin('fluid', function ($join) {
@@ -254,13 +274,13 @@ class TeacherBorrowController extends Controller
                 'requisitions.updated_at',
                 'users.name as instructor_name',
                 DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "Constructions" THEN construction.equipment END) as construction_equipment'),
-                DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "Testing" THEN testings.equipment END) as testing_equipment'),
-                DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "Surveying" THEN surveyings.equipment END) as surveying_equipment'),
+                DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "Testings" THEN testings.equipment END) as testing_equipment'),
+                DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "Surveyings" THEN surveyings.equipment END) as surveying_equipment'),
                 DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "Fluids" THEN fluid.equipment END) as fluid_equipment'),
                 DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN requisitions.category = "ComputerEngineering" THEN computer_engineering.equipment END) as computer_engineering_equipment'),
                 DB::raw('SUM(CASE WHEN requisitions.category = "Constructions" THEN requisitions_items.quantity ELSE 0 END) as construction_item_quantity'),
-                DB::raw('SUM(CASE WHEN requisitions.category = "Testing" THEN requisitions_items.quantity ELSE 0 END) as testing_item_quantity'),
-                DB::raw('SUM(CASE WHEN requisitions.category = "Surveying" THEN requisitions_items.quantity ELSE 0 END) as surveying_item_quantity'),
+                DB::raw('SUM(CASE WHEN requisitions.category = "Testings" THEN requisitions_items.quantity ELSE 0 END) as testing_item_quantity'),
+                DB::raw('SUM(CASE WHEN requisitions.category = "Surveyings" THEN requisitions_items.quantity ELSE 0 END) as surveying_item_quantity'),
                 DB::raw('SUM(CASE WHEN requisitions.category = "Fluids" THEN requisitions_items.quantity ELSE 0 END) as fluid_item_quantity'),
                 DB::raw('SUM(CASE WHEN requisitions.category = "ComputerEngineering" THEN requisitions_items.quantity ELSE 0 END) as computer_engineering_item_quantity'),
                 'construction.quantity as construction_actual_quantity',
@@ -295,8 +315,8 @@ class TeacherBorrowController extends Controller
                 'computer_engineering.quantity'
             )
             ->get();
-
-
+        // dd($requisitions);
+        // dd($requisitions);
         /**
          * @var App\Models\User;
          */
@@ -399,51 +419,90 @@ class TeacherBorrowController extends Controller
 
     public function retrieve($id)
     {
-        $requisition = DB::table('requisitions')
-            ->leftJoin('requisitions_items', 'requisitions.id', '=', 'requisitions_items.requisition_id')
+
+        $requisitions = DB::table('requisitions')
+            ->where('id', $id)
+            ->select('*')
+            ->first();
+        $category = $requisitions->category;
+
+        $requisitions = DB::table('requisitions')
             ->leftJoin('users', 'requisitions.instructor_id', '=', 'users.id')
             ->where('requisitions.id', $id)
-            ->select(
-                'requisitions.id',
-                'requisitions.category',
-                'requisitions.date_time_filed',
-                'requisitions.date_time_needed',
-                'requisitions.instructor_id',
-                'requisitions.subject',
-                'requisitions.course_year',
-                'requisitions.activity',
-                'requisitions.status',
-                'requisitions.dean_signature',
-                'requisitions.labtext_signature',
-                'requisitions.received_date',
-                'requisitions.returned_date',
-                'requisitions.issued_date',
-                'requisitions.checked_date',
-                'requisitions.created_at',
-                'requisitions.updated_at',
-                'users.name as instructor_name'
-            )
+            ->select('requisitions.*', 'users.name as instructor_name')
             ->first();
 
-        $items = DB::table('requisitions_items')
-            ->where('requisition_id', $id)
-            ->select('*')
-            ->get();
-        $equipment_ids = $items->pluck('equipment_id');
-        $item_details = $this->getItemsByCategory($requisition->category, $equipment_ids);
 
-        $students = DB::table('requisitions_items_students')
-            ->where('requisition_id', $id)
-            ->get();
-
+        switch ($category) {
+            case 'Constructions':
+                $items = DB::table('requisitions_items')
+                    ->where('requisition_id', $id)
+                    ->leftJoin('requisition_items_serials', 'requisitions_items.id', '=', 'requisition_items_serials.requisition_items_id')
+                    ->select('*')
+                    ->get();
+                $equipmentIds = $items->pluck('equipment_id')->toArray();
+                $item_details = $this->getItemsByCategory($requisitions->category, $equipmentIds);
+                $students = DB::table('requisitions_items_students')
+                    ->where('requisition_id', $id)
+                    ->get();
+                break;
+            case 'Fluids':
+                $items = DB::table('requisitions_items')
+                    ->where('requisition_id', $id)
+                    ->leftJoin('requisition_items_serials', 'requisitions_items.equipment_serial_id', '=', 'requisition_items_serials.requisition_items_id')
+                    ->select('*')
+                    ->get();
+                $equipmentIds = $items->pluck('equipment_id')->toArray();
+                $item_details = $this->getItemsByCategory($requisitions->category, $equipmentIds);
+                $students = DB::table('requisitions_items_students')
+                    ->where('requisition_id', $id)
+                    ->get();
+                break;
+            case 'Testings':
+                $items = DB::table('requisitions_items')
+                    ->where('requisition_id', $id)
+                    ->leftJoin('requisition_items_serials', 'requisitions_items.id', '=', 'requisition_items_serials.requisition_items_id')
+                    ->select('*')
+                    ->get();
+                $equipmentIds = $items->pluck('equipment_id')->toArray();
+                $item_details = $this->getItemsByCategory($requisitions->category, $equipmentIds);
+                $students = DB::table('requisitions_items_students')
+                    ->where('requisition_id', $id)
+                    ->get();
+                break;
+            case 'Surveyings':
+                $items = DB::table('requisitions_items')
+                    ->where('requisition_id', $id)
+                    ->leftJoin('requisition_items_serials', 'requisitions_items.id', '=', 'requisition_items_serials.requisition_items_id')
+                    ->select('*')
+                    ->get();
+                $equipmentIds = $items->pluck('equipment_id')->toArray();
+                $item_details = $this->getItemsByCategory($requisitions->category, $equipmentIds);
+                $students = DB::table('requisitions_items_students')
+                    ->where('requisition_id', $id)
+                    ->get();
+                break;
+            case 'ComputerEngineering':
+                $items = DB::table('requisitions_items')
+                    ->where('requisition_id', $id)
+                    ->leftJoin('requisition_items_serials', 'requisitions_items.id', '=', 'requisition_items_serials.requisition_items_id')
+                    ->select('*')
+                    ->get();
+                $equipmentIds = $items->pluck('equipment_id')->toArray();
+                $item_details = $this->getItemsByCategory($requisitions->category, $equipmentIds);
+                $students = DB::table('requisitions_items_students')
+                    ->where('requisition_id', $id)
+                    ->get();
+                break;
+            default:
+                break;
+        }
         $data = [
-            'requisition' => $requisition,
+            'requisition' => $requisitions,
             'items' => $items,
             'item_details' => $item_details,
-            'students' => $students,
+            'students' => $students
         ];
-
-
 
         return view('laboratory.transaction.details', compact('data'));
     }
@@ -516,7 +575,7 @@ class TeacherBorrowController extends Controller
                 return ConstructionSerials::where('product_id', $equipment_id)->get();
             case 'Testings':
                 return TestingSerials::where('product_id', $equipment_id)->get();
-            case 'Surveying':
+            case 'Surveyings':
                 return SurveyingSerials::where('product_id', $equipment_id)->get();
             case 'Fluids':
                 return FluidSerials::where('product_id', $equipment_id)->get();
@@ -533,23 +592,33 @@ class TeacherBorrowController extends Controller
         switch ($category) {
             case 'Constructions':
                 return DB::table('construction')
-                    ->whereIn('id', $equipment_ids)
+                    ->leftJoin('construction_serials', 'construction.id', '=', 'construction_serials.product_id')
+                    ->whereIn('construction.id', $equipment_ids)
+                    ->select('*')
                     ->get();
             case 'Testings':
                 return DB::table('testings')
-                    ->whereIn('id', $equipment_ids)
+                    ->leftJoin('testing_serials', 'testings.id', '=', 'testing_serials.product_id')
+                    ->whereIn('testings.id', $equipment_ids)
+                    ->select('*')
                     ->get();
-            case 'Surveying':
+            case 'Surveyings':
                 return DB::table('surveyings')
-                    ->whereIn('id', $equipment_ids)
+                    ->leftJoin('surveying_serials', 'surveyings.id', '=', 'surveying_serials.product_id')
+                    ->whereIn('surveyings.id', $equipment_ids)
+                    ->select('*')
                     ->get();
             case 'Fluids':
                 return DB::table('fluid')
-                    ->whereIn('id', $equipment_ids)
+                    ->leftJoin('fluid_serials', 'fluid.id', '=', 'fluid_serials.product_id')
+                    ->whereIn('fluid.id', $equipment_ids)
+                    ->select('*')
                     ->get();
             case 'ComputerEngineering':
                 return DB::table('computer_engineering')
-                    ->whereIn('id', $equipment_ids)
+                    ->leftJoin('computer_engineering_serials', 'computer_engineering.id', '=', 'computer_engineering_serials.product_id')
+                    ->whereIn('computer_engineering.id', $equipment_ids)
+                    ->select('*')
                     ->get();
             default:
                 return collect();
@@ -643,39 +712,6 @@ class TeacherBorrowController extends Controller
         $data->status = 'Accepted by Dean';
         $data->save();
 
-
-        // $requisitionItems = RequisitionsItems::where('requisition_id', $data->id)->first();
-        // switch ($request->input('category')) {
-        //     case 'Constructions':
-        //         $requisitionItemFound = Construction::find($requisitionItems->equipment_id)->first();
-        //         $requisitionItemFound->quantity -= $requisitionItems->quantity;
-        //         $requisitionItemFound->save();
-        //         break;
-        //     case 'Testings':
-        //         $requisitionItemFound = Testing::find($requisitionItems->equipment_id)->first();
-        //         $requisitionItemFound->quantity -= $requisitionItems->quantity;
-        //         $requisitionItemFound->save();
-        //         break;
-        //     case 'ComputerEngineering':
-        //         $requisitionItemFound = ComputerEngineering::find($requisitionItems->equipment_id)->first();
-        //         $requisitionItemFound->quantity -= $requisitionItems->quantity;
-        //         $requisitionItemFound->save();
-        //         break;
-        //     case 'Fluids':
-        //         $requisitionItemFound = Fluid::find($requisitionItems->equipment_id)->first();
-        //         $requisitionItemFound->quantity -= $requisitionItems->quantity;
-        //         $requisitionItemFound->save();
-        //         break;
-        //     case 'Surveyings':
-        //         $requisitionItemFound = Surveying::find($requisitionItems->equipment_id)->first();
-        //         $requisitionItemFound->quantity -= $requisitionItems->quantity;
-        //         $requisitionItemFound->save();
-        //         break;
-
-        //     default:
-        //         dd("No Model Found for the {$request->input('category')}");
-        //         break;
-        // }
 
         $laboratoryUsers = User::role(['laboratory', 'user'])->get();
         foreach ($laboratoryUsers as $user) {

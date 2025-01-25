@@ -58,7 +58,7 @@
                                                             {{ $requisition->construction_item_quantity }}
                                                         @elseif($requisition->category === 'Testings')
                                                             {{ $requisition->testing_item_quantity }}
-                                                        @elseif($requisition->category === 'Surveying')
+                                                        @elseif($requisition->category === 'Surveyings')
                                                             {{ $requisition->surveying_item_quantity }}
                                                         @elseif($requisition->category === 'Fluids')
                                                             {{ $requisition->fluid_item_quantity }}

@@ -11,4 +11,10 @@ class ConstructionSerials extends Model
 
 
     protected $fillable = ['product_id', 'serial_no', 'condition'];
+
+
+    public function parent()
+    {
+        return $this->belongsTo(Construction::class, 'product_id');
+    }
 }

@@ -58,8 +58,7 @@
                                                     @if ($request->item_type === 'Supplies')
                                                         {{ $request->supply_item }}
                                                     @elseif ($request->item_type === 'Equipments')
-                                                        <button class="btn btn-secondary show-items" data-toggle="modal"
-                                                            data-target="#itemsOnRequestEquipment"
+                                                        <button class="btn btn-secondary show-items"
                                                             data-id="{{ $request->id }}">
                                                             Click to show items
                                                         </button>
@@ -78,7 +77,7 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    @if ($request->status === 'Pending' && $request->item_type === 'Equipments')
+                                                    {{-- @if ($request->status === 'Pending' && $request->item_type === 'Equipments')
                                                         <div class="dropdown">
                                                             <a class="btn btn-secondary dropdown-toggle" href="#"
                                                                 role="button" data-toggle="dropdown" aria-expanded="false">
@@ -88,20 +87,12 @@
                                                                 <a class="dropdown-item status-option"
                                                                     data-status="Approved" data-id="{{ $request->id }}"
                                                                     href="#">Approved</a>
-                                                                {{-- <a class="dropdown-item"
-                                                                    href="{{ route('office-transactions-details-data', ['id' => $request->id]) }}">View
-                                                                    Request
-                                                                    Details</a> --}}
                                                                 <a class="dropdown-item status-option"
                                                                     data-status="Declined" data-id="{{ $request->id }}"
                                                                     href="#">Declined</a>
 
                                                             </div>
                                                         </div>
-                                                        {{-- <a class="btn btn-success status-option" data-status="Approved"
-                                                            data-id="{{ $request->id }}" href="#">Approve</a>
-                                                        <a class="btn btn-danger status-option" data-status="Declined"
-                                                            data-id="{{ $request->id }}" href="#">Declined</a> --}}
                                                     @elseif ($request->status === 'Approved' && $request->item_type === 'Equipments')
                                                         <div class="dropdown">
                                                             <a class="btn btn-secondary dropdown-toggle" href="#"
@@ -144,11 +135,7 @@
                                                                     data-id="{{ $request->id }}" href="#">XXX</a>
                                                             </div>
                                                         </div>
-                                                        {{-- <a class="btn btn-warning status-option" data-status="Repaired"
-                                                            data-id="{{ $request->id }}" href="#">Repaired</a>
-                                                        <a class="btn btn-danger status-option" data-status="XXX"
-                                                            data-id="{{ $request->id }}" href="#">XXX</a> --}}
-                                                    @endif
+                                                    @endif --}}
 
                                                     @if ($request->status === 'Pending' && $request->item_type === 'Supplies')
                                                         <div class="dropdown">
@@ -171,8 +158,7 @@
                                                     @elseif ($request->status === 'Approved' && $request->item_type === 'Supplies')
                                                         <div class="dropdown">
                                                             <a class="btn btn-secondary dropdown-toggle" href="#"
-                                                                role="button" data-toggle="dropdown"
-                                                                aria-expanded="false">
+                                                                role="button" data-toggle="dropdown" aria-expanded="false">
                                                                 <i class="fas fa-cog"></i> Actions
                                                             </a>
                                                             <div class="dropdown-menu">
@@ -213,9 +199,6 @@
                     </div>
                 </div>
                 <div class="modal-footer" id="items_button">
-                    {{-- <button type="button" class="btn btn-primary d-none" id="select-items-good">Select items you wish to
-                        mark
-                        as good</button> --}}
                     <button type="button" class="btn btn-success d-none" id="submit-selected-items">Submit
                         Selected</button>
                     <button type="button" class="btn btn-danger d-none" id="cancel-select-items">Cancel</button>
@@ -240,8 +223,7 @@
                     <p>Are you sure you want to set the status to <strong id="statusText"></strong>?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger bg-red-500 text-white"
-                        data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger bg-red-500 text-white" data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-success bg-green-600 text-white"
                         id="confirmStatusBtn">Confirm</button>
                 </div>
@@ -251,6 +233,7 @@
 @endsection
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('buttons.js') }}"></script>
     <script>
         $(document).ready(function() {
             var selectedStatus = '';
@@ -285,6 +268,7 @@
             });
 
             $(document).on('click', '.show-items', function() {
+                $('#itemsOnRequestEquipment').modal('show')
                 var requestId = $(this).data('id');
                 $.ajax({
                     url: "{{ route('office-admin.transactions-details', ['']) }}/" + requestId,
@@ -299,7 +283,7 @@
                         console.log(response);
                         var itemsDisplay = $('#items_display');
                         itemsDisplay.empty();
-
+                        $('#cancel-select-items').nextAll().remove();
                         if (response.length === 0) {
                             itemsDisplay.append(
                                 '<div class="list-group-item text-center text-muted">No items found</div>'
@@ -308,53 +292,200 @@
                             const items = response;
                             let showSelectItemsGoodButton =
                                 false;
-
+                            let totalCountOfApprove = 0
+                            let totalCountOfReceived = 0
+                            let totalCountofApprove = 0
+                            let totalCountofPending = 0
+                            var itemsRequisitionId = items[0].id
+                            let returnedItemsCount = 0
                             items.forEach(function(item) {
-                                console.log(item);
+                                if (item.borrowed_equipment_status === "Pending") {
+                                    totalCountofPending++
+                                }
+                                if (item.borrowed_equipment_status === "Approved") {
+                                    totalCountOfApprove++;
+                                }
+                                if (item.borrowed_equipment_status === "Received") {
+                                    totalCountOfReceived++
+                                }
+
+                                if (item.borrowed_equipment_status === "Returned") {
+                                    returnedItemsCount++
+                                }
 
                                 var itemHtml = `
-                                <div class="list-group-item d-flex justify-content-between align-items-center ${item.equipment_status === 'Queue' ? '' : (item.equipment_status === 'Good' ? 'bg-info' : 'bg-danger')}">
+                                <div data-item-id=${item.item_id} data-equipment-status=${item.equipment_status}
+                                data-item-status=${item.borrowed_equipment_status} class="list-group-item d-flex justify-content-between
+                                     align-items-center ${item.equipment_status === 'Queue' ? '' :
+                                      (item.equipment_status === 'Good' ? 'bg-info' : 'bg-danger')}">
                                     <div class="item-details">
                                         <strong>Equipment Item:</strong> ${item.equipment_item} <br>
-                                        <strong>Serial No:</strong> ${item.equipment_serial}
+                                        <strong>Serial No:</strong> ${item.equipment_serial} - (<span class='text-black'>${item.borrowed_equipment_status}</span>)
                                     </div>
                                     `;
 
-                                if (item.status === 'Returned' && item
-                                    .equipment_status === "Queue") {
+
+                                if (item.equipment_status != "Damaged") {
                                     itemHtml += `
-                                    <div class="ml-auto">
-                                        <button class="btn btn-danger btn-sm mark-damaged" data-item-id="${item.equipment_serial_id}">
-                                            <i class="fas fa-times-circle"></i> Damaged
-                                        </button>
-                                    `;
-                                    if (item.equipment_notes === null && item
-                                        .equipment_status != "Good") {
-                                        itemHtml += `
-                                        <button class="btn btn-info btn-sm add-note" data-item-id="${item.equipment_serial_id}">
+                                <div class="ml-auto">
+                                    <button class="btn btn-danger btn-sm mark-damaged
+                                    ${item.borrowed_equipment_status != "Returned"  ? 'd-none': ''} "
+                                    data-item-id="${item.equipment_serial_id}">
+                                        <i class="fas fa-times-circle"></i> Damaged
+                                    </button>
+                                `;
+                                }
+
+                                if (item.equipment_notes == null) {
+                                    itemHtml += `
+                                        <button class="btn btn-info btn-sm add-note
+                                        ${item.borrowed_equipment_status != "Returned"  ? 'd-none': ''}
+                                        "
+                                        data-item-id="${item.equipment_serial_id}">
                                             <i class="far fa-copy"></i> Add Notes
                                         </button>
                                         `;
-                                    }
+
                                     itemHtml += `</div>`;
                                 }
 
                                 itemHtml += '</div>';
                                 $('#items_display').append(itemHtml);
 
-                                if (item.status === 'Returned') {
-                                    showSelectItemsGoodButton = true;
-                                }
+                            });
+
+
+                            actionButtons() //from public folder
+                            $('#approve-selected-button').addClass('d-none')
+                            if (totalCountofPending > 0) {
+                                $('#submit-selected-button-approve').addClass('d-none')
+                                $('#procedd-received-button').addClass('d-none')
+                                $('#approve-selected-button').removeClass('d-none')
+                            }
+
+                            if (totalCountOfApprove > 1) {
+                                $('#approve-selected-button').addClass('d-none')
+                            }
+
+                            if (totalCountOfReceived > 0) {
+                                $('#approve-selected-button').addClass('d-none')
+                                $('#submit-selected-button-approve').addClass('d-none')
+                                $('#returned-all-button').removeClass('d-none')
+                            }
+
+                            if (returnedItemsCount > 0) {
+                                $('#items_button').addClass('d-none')
+                                // $('#submit-selected-button-approve').addClass('d-none')
+                                // $('#approve-selected-button').addClass('d-none')
+                            }
+                            // Add checkboxes to items and show buttons on "Select Items to Approve"
+                            $(document).on('click', '#approve-selected-button', function() {
+                                $('#items_display .list-group-item').each(function() {
+                                    // Only add checkboxes for items with "Pending" status
+                                    if ($(this).data('item-status') ===
+                                        'Pending' && $(this).data(
+                                            'equipment-status') != 'Damaged' &&
+                                        !$(this).find(
+                                            'input[type="checkbox"]').length) {
+                                        const itemId = $(this).data('item-id');
+                                        const checkbox = $('<input>', {
+                                            type: 'checkbox',
+                                            class: 'item-checkbox mr-3',
+                                            value: itemId,
+                                        });
+
+                                        $(this).prepend(checkbox);
+                                    }
+                                });
+
+                                // Toggle button visibility
+                                $('#approve-selected-button').addClass('d-none');
+                                $('#submit-selected-button').removeClass('d-none');
+                                $('#cancel-selected-button').removeClass('d-none');
+                            });
+
+                            // Remove checkboxes and toggle buttons on "Deselect / Cancel"
+                            $(document).on('click', '#cancel-selected-button', function() {
+                                $('#items_display .list-group-item').each(function() {
+                                    // Remove checkboxes
+                                    $(this).find('input[type="checkbox"]')
+                                        .remove();
+                                });
+
+                                // Toggle button visibility
+                                $('#cancel-selected-button').addClass('d-none');
+                                $('#submit-selected-button').addClass('d-none');
+                                $('#approve-selected-button').removeClass('d-none');
+                            });
+
+                            // Submit selected items on "Submit Selected"
+                            $(document).on('click', '#submit-selected-button', function() {
+                                const selectedItems = [];
+
+                                // Collect all selected checkboxes
+                                $('#items_display .list-group-item input[type="checkbox"]:checked')
+                                    .each(function() {
+                                        selectedItems.push($(this)
+                                            .val()); // Push the checkbox value
+                                    });
+
+                                console.log('Selected Items:', selectedItems);
+
+                                $.ajax({
+                                    url: '{{ route('office.approve-selected-items') }}',
+                                    type: 'POST',
+                                    data: {
+                                        selectedItems: selectedItems,
+                                        _token: '{{ csrf_token() }}'
+                                    },
+                                    success: function(response) {
+                                        console.log(response);
+                                        if (response.success) {
+                                            location.reload()
+                                        }
+                                        $('#cancel-selected-button')
+                                            .trigger('click');
+                                    }
+                                })
 
                             });
 
-                            // Add the button only if the flag is true
+
+                            $(document).on('click', '#submit-selected-button-approve',
+                                function() {
+                                    $('#items_display .list-group-item').each(function() {
+                                        // Only add checkboxes for items with "Pending" status
+                                        if ($(this).data('item-status') ===
+                                            'Approved' && $(this).data(
+                                                'equipment-status') != 'Damaged' &&
+                                            !$(this).find(
+                                                'input[type="checkbox"]').length) {
+                                            const itemId = $(this).data('item-id');
+                                            const checkbox = $('<input>', {
+                                                type: 'checkbox',
+                                                class: 'item-checkbox mr-3',
+                                                value: itemId,
+                                            });
+
+                                            $(this).prepend(checkbox);
+                                        }
+                                    });
+                                    $(this).addClass('d-none')
+                                    // $('#approve-selected-button').addClass('d-none');
+                                    // $('#received-button').removeClass('d-none')
+                                    $("#cancel-received-button").removeClass('d-none')
+                                    $('#procedd-received-button').removeClass('d-none')
+                                });
+
+
+
+
                             if (showSelectItemsGoodButton) {
                                 const buttonHtml = `
-                                    <button type="button" class="btn btn-primary" id="select-items-good">
-                                        Select items you wish to mark as good
-                                    </button>
-                                `;
+                                        <button type="button" class="btn btn-primary" id="select-items-good">
+                                            Select items you wish to mark as good
+                                        </button>
+                                    `;
                                 $('#items_button').append(
                                     buttonHtml);
                             }
@@ -367,8 +498,8 @@
                                     if (item.equipment_status !== 'Good') {
                                         const itemId = item.equipment_serial_id;
                                         $(element).prepend(`
-                                        <input type="checkbox" class="item-checkbox" data-item-id="${itemId}" style="margin-right: 10px;">
-                                    `);
+                                            <input type="checkbox" class="item-checkbox" data-item-id="${itemId}" style="margin-right: 10px;">
+                                        `);
                                     }
                                 });
                                 $(this).addClass('d-none');
@@ -390,7 +521,6 @@
                                         _token: '{{ csrf_token() }}'
                                     },
                                     success: function(response) {
-                                        console.log(response);
                                         if (response.status == "success") {
                                             location.reload()
                                         }
@@ -403,11 +533,65 @@
                                 });
                             });
 
+                            $('#procedd-received-button').on('click', function() {
+                                var selectedItems = [];
+                                $('#items_display .list-group-item input[type="checkbox"]:checked')
+                                    .each(function() {
+                                        selectedItems.push($(this)
+                                            .val());
+                                    });
+
+                                $.ajax({
+                                    url: '{{ route('office.mark-recieved-items') }}',
+                                    method: 'POST',
+                                    data: {
+                                        selected_items: selectedItems,
+                                        _token: '{{ csrf_token() }}'
+                                    },
+                                    success: function(response) {
+                                        if (response.success) {
+                                            location.reload()
+                                        }
+                                    },
+                                    error: function(response) {
+                                        alert(
+                                            'Failed to submit selected items.'
+                                        );
+                                    }
+                                });
+
+                            })
+
                             $('#cancel-select-items').on('click', function() {
                                 $('.item-checkbox').remove();
                                 $('#select-items-good').removeClass('d-none');
                                 $('#submit-selected-items').addClass('d-none');
                                 $('#cancel-select-items').addClass('d-none');
+                            });
+
+                            $('#cancel-received-button').on('click', function() {
+                                $('.item-checkbox').remove();
+                                $('#cancel-received-button').addClass('d-none')
+                                $('#submit-selected-button-approve').removeClass(
+                                    'd-none')
+                                // $('#approve-selected-button').removeClass('d-none');
+                                // $('#received-button').addClass('d-none')
+                            });
+
+                            $('#returned-all-button').on('click', function() {
+                                $.ajax({
+                                    url: '{{ route('office.returned-all') }}',
+                                    type: 'POST',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        itemRequisitionId: itemsRequisitionId,
+                                    },
+                                    success: function(response) {
+                                        if (response.success) {
+                                            location.reload()
+                                        }
+                                    }
+                                })
                             });
                         }
                     }
@@ -454,13 +638,13 @@
                 var itemDiv = $(this).closest('.list-group-item');
 
                 var notesHtml = `
-                    <div class="form-group mt-2" id="note-added-section-${itemId}">
-                        <label for="added-notes-${itemId}">Notes:</label>
-                        <textarea class="form-control" id="added-notes-${itemId}" rows="3" placeholder="Enter notes..."></textarea>
-                        <button class="btn btn-primary btn-sm mt-2 submit-added-notes" data-item-id="${itemId}">Submit</button>
-                        <button class="btn btn-secondary btn-sm mt-2 cancel-added-notes" data-item-id="${itemId}">Cancel</button>
-                    </div>
-                `;
+                        <div class="form-group mt-2" id="note-added-section-${itemId}">
+                            <label for="added-notes-${itemId}">Notes:</label>
+                            <textarea class="form-control" id="added-notes-${itemId}" rows="3" placeholder="Enter notes..."></textarea>
+                            <button class="btn btn-primary btn-sm mt-2 submit-added-notes" data-item-id="${itemId}">Submit</button>
+                            <button class="btn btn-secondary btn-sm mt-2 cancel-added-notes" data-item-id="${itemId}">Cancel</button>
+                        </div>
+                    `;
 
                 itemDiv.after(notesHtml);
 

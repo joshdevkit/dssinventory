@@ -10,4 +10,9 @@ class TestingSerials extends Model
     use HasFactory;
 
     protected $fillable = ['product_id', 'serial_no', 'condition'];
+
+    public function parent()
+    {
+        return $this->belongsTo(Testing::class, 'product_id');
+    }
 }

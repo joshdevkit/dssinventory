@@ -4,6 +4,7 @@ namespace App\Http\Controllers\OfficePanel;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EquipmentRequest;
+use App\Models\BorrowedEquipment;
 use App\Models\Equipment;
 use App\Models\EquipmentItems;
 use Illuminate\Http\Request;
@@ -170,5 +171,12 @@ class EquipmentController extends Controller
         Equipment::whereIn('id', request('ids'))->delete();
 
         return response()->noContent();
+    }
+
+
+    public function equipment_items_history($id)
+    {
+        $itemHistory = BorrowedEquipment::where('equipment_serial_id', $id)->where('borrow_status', 'Returned')->with(['items', 'requestFrom.requestBy'])->get();
+        return view('office.equipment.equipment-history', compact('itemHistory'));
     }
 }

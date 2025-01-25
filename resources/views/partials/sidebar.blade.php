@@ -79,6 +79,16 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ request()->routeIs('laboratory-equipments.index') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('laboratory-equipments.index') ? 'active' : '' }}"
+                        href="{{ route('laboratory-equipments.index') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">
+                            Laboratory Equipments
+                        </p>
+                    </a>
+                </li>
+
                 <li class="nav-item {{ request()->routeIs('change-password') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('change-password.index') ? 'active' : '' }}"
                         href="{{ route('change-password.index') }}">

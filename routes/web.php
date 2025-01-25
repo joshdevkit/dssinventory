@@ -39,9 +39,7 @@ use App\Http\Controllers\SuperAdminPanel\SEquipmentController;
 use App\Http\Controllers\SuperAdminPanel\SSuppliesController;
 use App\Http\Controllers\SuperAdminPanel\SuperadminController;
 use App\Http\Controllers\SuperAdminPanel\UserManagementController;
-
-
-
+use FontLib\Table\Type\name;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -66,6 +64,8 @@ Route::middleware(['auth', 'role:site secretary'])->group(function () {
     Route::get('/office/supplies', [SuppliesController::class, 'index'])->name('supplies.index');
     Route::get('/office/equipment', [EquipmentController::class, 'index'])->name('site.equipment.index');
     Route::get('/office/equipment-items', [EquipmentController::class, 'equipment_items'])->name('site.equipment-items.index');
+    Route::get('/office/equipment-items/history/{id}', [EquipmentController::class, 'equipment_items_history'])->name('site.equipment-items-history.index');
+
 
     Route::get('office/calendaro', [CalendaroController::class, 'index'])->name('office.calendaro');
     Route::get('/office/transactions', [TransactionOfficeController::class, 'index'])->name('office-admin.transactions');
@@ -80,8 +80,9 @@ Route::middleware(['auth', 'role:site secretary'])->group(function () {
     Route::post('/office/submit-added-notes', [TransactionOfficeController::class, 'submitAddedNotes'])->name('office.submit-added-notes');
     Route::post('/office/submit-mark-damaged', [TransactionOfficeController::class, 'submitMarkAsDamaged'])->name('office.submit-as-damaged');
     Route::post('/office/submit-selected-items', [TransactionOfficeController::class, 'submitGoodCondition'])->name('office.submit-good-items');
-
-
+    Route::post('/office/approved-selected-items', [TransactionOfficeController::class, 'approveAllSelected'])->name('office.approve-selected-items');
+    Route::post('/office/received-selected-items', [TransactionOfficeController::class, 'RecievedAllSelected'])->name('office.mark-recieved-items');
+    Route::post('/office/return-all-items', [TransactionOfficeController::class, 'ReturnAllItems'])->name('office.returned-all');
 
     Route::post('site-office/transactions/update', [TransactionOfficeController::class, 'decisions'])->name('office.transaction-update');
     Route::post('/office/transactions/{id}/disapprove', [TransactionOfficeController::class, 'disapprove'])->name('office.transactions.disapprove');
@@ -149,6 +150,8 @@ Route::middleware(['auth', 'role:laboratory'])->group(function () {
 
     Route::post('/laboratory/notify-borrower', [TransactionOfficeController::class, 'notifyBorrower'])->name('notify.user');
     Route::get('/laboratory/requisitions/chart', [TeacherborrowController::class, 'getChartData'])->name('laboratory-office.chart');
+
+    Route::get('/laboratory/equipment-items', [LaboratoryController::class, 'equipment_items'])->name('laboratory-equipments.index');
 });
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
