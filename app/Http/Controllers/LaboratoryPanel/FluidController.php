@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\FluidRequest;
 use App\Models\Fluid;
 use App\Models\FluidSerials;
+use App\Models\LaboratoryEquipment;
+use App\Models\LaboratoryEquipmentItem;
 use Illuminate\Http\Request;
 
 class FluidController extends Controller
@@ -16,7 +18,12 @@ class FluidController extends Controller
      */
     public function index()
     {
-        $fluids = Fluid::with('items')->get();
+        $fluids = LaboratoryEquipment::with(['category', 'items'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Hydraulics and Fluids');
+            })
+            ->get();
+        // $fluids = Fluid::with('items')->get();
 
         return view('laboratory.fluid.index', compact('fluids'));
     }
@@ -62,7 +69,8 @@ class FluidController extends Controller
 
         $quantity = count($serialNumbers);
 
-        $computerEngineering = Fluid::create([
+        $computerEngineering = LaboratoryEquipment::create([
+            'category_id' => 5,
             'equipment' => $equipment,
             'brand' => $brand,
             'description' => $description,
@@ -72,8 +80,8 @@ class FluidController extends Controller
         ]);
 
         foreach ($serialNumbers as $index => $serialNo) {
-            FluidSerials::create([
-                'product_id' => $computerEngineering->id,
+            LaboratoryEquipmentItem::create([
+                'laboratory_equipment_id' => $computerEngineering->id,
                 'serial_no' => $serialNo,
                 'condition' => $conditions[$index],
             ]);
@@ -87,15 +95,16 @@ class FluidController extends Controller
 
     public function show($id)
     {
-        $data = Fluid::with('items')->find($id);
+        $data = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.fluid.show', compact('data'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Fluid $fluid) // Note the variable name change here to match the model binding
+    public function edit($id) // Note the variable name change here to match the model binding
     {
+        $fluid = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.fluid.edit', compact('fluid')); // Make sure 'surveying' is the variable used
     }
 
@@ -125,7 +134,7 @@ class FluidController extends Controller
         // $fluid->update($input);
 
         // return redirect()->route('fluid.index')->with('message', 'Successfully updated!');
-        $fluid = Fluid::findOrFail($id);
+        $fluid = LaboratoryEquipment::findOrFail($id);
 
         // Get existing item IDs and new items from the request
         $existingItemIds = $request->input('serial_id', []);
@@ -184,7 +193,7 @@ class FluidController extends Controller
      */
 
 
-    public function destroy(Fluid $fluid)
+    public function destroy(LaboratoryEquipment $fluid)
     {
         $fluid->delete();
 

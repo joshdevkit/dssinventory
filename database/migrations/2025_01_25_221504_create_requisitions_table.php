@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('requisitions', function (Blueprint $table) {
             $table->id();
-            $table->string('category');
+            $table->unsignedBigInteger('category_id');
             $table->dateTime('date_time_filed');
             $table->dateTime('date_time_needed');
             $table->unsignedBigInteger('instructor_id');
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->dateTime('checked_date')->nullable();
             $table->timestamps();
 
-
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->foreign('instructor_id')->references('id')->on('users')->onDelete('cascade');
         });
     }

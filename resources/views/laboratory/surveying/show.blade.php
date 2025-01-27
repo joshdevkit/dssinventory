@@ -40,7 +40,7 @@
                             <tr>
                                 <th>Serial Number</th>
                                 <th>Condition</th>
-                          
+
                             </tr>
                         </thead>
                         <tbody>
@@ -48,7 +48,7 @@
                                 <tr>
                                     <td>{{ $item->serial_no }}</td>
                                     <td>{{ $item->condition }}</td>
-                                    
+
                                 </tr>
                             @endforeach
                         </tbody>

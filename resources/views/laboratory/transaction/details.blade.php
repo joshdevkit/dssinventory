@@ -15,8 +15,8 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h2 class="text-success">Transactions / {{ $data['requisition']->activity }} /
-                            {{ $data['requisition']->category }}</h2>
+                        <h2 class="text-success">Transactions / {{ $data->activity }} /
+                            {{ $data->category->name }}</h2>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -29,7 +29,7 @@
                     <div class="card-header">
                         <h1 class="text-black text-center">
                             This request was made at
-                            {{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_filed)) }}
+                            {{ date('F d, Y h:i A', strtotime($data->date_time_filed)) }}
 
                         </h1>
 
@@ -46,14 +46,13 @@
                         @endif
                         <div class="mb-10 mt-3 col-md-12">
                             @php
-                                $requisitionStatus = $data['requisition']->status;
+                                $requisitionStatus = $data->status;
                             @endphp
 
                             @if ($requisitionStatus == 'Declined')
                                 <p>This requisition has already been declined .</p>
                             @elseif($requisitionStatus === 'Pending')
-                                <form
-                                    action="{{ url('/laboratory/update-requisition-details/' . $data['requisition']->id) }}"
+                                <form action="{{ url('/laboratory/update-requisition-details/' . $data->id) }}"
                                     method="POST" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
@@ -71,9 +70,9 @@
                                     </div>
 
                                     <div class="d-flex">
-                                        <input type="hidden" name="category" value="{{ $data['requisition']->category }}">
+                                        <input type="hidden" name="category" value="{{ $data->category->id }}">
                                         <input type="hidden" name="requisition_id" id="requisition_id"
-                                            value="{{ $data['requisition']->id }}">
+                                            value="{{ $data->id }}">
                                         <button type="submit"
                                             class="btn btn-success text-black mr-3 approve">Approve</button>
                                         <button type="button"
@@ -84,7 +83,7 @@
                                 </form>
                             @elseif($requisitionStatus === 'Accepted by Dean')
                                 <p>
-                                    <a href="{{ route('laboratory.print-requisition', ['id' => $data['requisition']->id]) }}"
+                                    <a href="{{ route('laboratory.print-requisition', ['id' => $data->id]) }}"
                                         class="btn btn-link print_btn">This requisition has already
                                         been
                                         Accepted by
@@ -99,55 +98,24 @@
                                 <h4>Requisition Details</h4>
                                 <hr>
                                 <ul>
-                                    <li><strong>Category:</strong> {{ $data['requisition']->category }}</li>
-                                    <li><strong>Date Filed:</strong>
-                                        {{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_filed)) }}</li>
+                                    <li><strong>Category:</strong> {{ $data->category->name }}</li>
+                                    <li><strong>Date Filled:</strong>
+                                        {{ date('F d, Y h:i A', strtotime($data->date_time_filed)) }}</li>
                                     <li><strong>Date Needed:</strong>
-                                        {{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_needed)) }}</li>
-                                    <li><strong>Instructor:</strong> {{ $data['requisition']->instructor_name }}</li>
-                                    <li><strong>Subject:</strong> {{ $data['requisition']->subject }}</li>
-                                    <li><strong>Course/Year:</strong> {{ $data['requisition']->course_year }}</li>
-                                    <li><strong>Activity:</strong> {{ $data['requisition']->activity }}</li>
-                                    <li><strong>Status:</strong> {{ $data['requisition']->status }}</li>
+                                        {{ date('F d, Y h:i A', strtotime($data->date_time_needed)) }}</li>
+                                    <li><strong>Instructor:</strong> {{ $data->instructor->name }}</li>
+                                    <li><strong>Subject:</strong> {{ $data->subject }}</li>
+                                    <li><strong>Course/Year:</strong> {{ $data->course_year }}</li>
+                                    <li><strong>Activity:</strong> {{ $data->activity }}</li>
+                                    <li><strong>Status:</strong> {{ $data->status }}</li>
                                 </ul>
-                            </div>
-                            <div class="col-md-4">
-                                <h4>Items</h4>
-                                <hr>
-                                @if ($data['items']->isNotEmpty())
-                                    <ul>
-                                        @foreach ($data['items'] as $item)
-                                            @php
-                                                $itemDetails = $data['item_details']->firstWhere(
-                                                    'id',
-                                                    $item->equipment_serial_id,
-                                                );
-                                            @endphp
-                                            @if ($itemDetails)
-                                                <li>
-                                                    <strong>{{ $itemDetails->equipment ?? 'N/A' }}</strong><br>
-                                                    <strong>Description:
-                                                        {{ $itemDetails->description ?? 'N/A' }}</strong><br>
-                                                    <strong>Brand:</strong> {{ $itemDetails->brand ?? 'N/A' }} <br>
-                                                    <strong>Condition during borrow:</strong> {{ $item->remarks }} <br>
-                                                    <strong>Product Serial:</strong>
-                                                    {{ $itemDetails->serial_no ?? 'N/A' }}<br><br>
-                                                </li>
-                                            @endif
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <p>No items found.</p>
-                                @endif
-
-
                             </div>
                             <div class="col-md-4">
                                 <h4><strong>Students</strong></h4>
                                 <hr>
-                                @if ($data['students']->isNotEmpty())
+                                @if ($data->students->isNotEmpty())
                                     <ol>
-                                        @foreach ($data['students'] as $student)
+                                        @foreach ($data->students as $student)
                                             <li> {{ $student->student_name }}</li>
                                         @endforeach
                                     </ol>
@@ -155,177 +123,184 @@
                                     <p>No students found.</p>
                                 @endif
                             </div>
-
                         </div>
-                        <a type="cancel" class="btn btn-danger float-right"
+                        <a type="cancel" class="btn btn-danger float-right mt-5"
                             href="{{ url('/laboratory/transaction') }}">{{ __('Exit') }}</a>
                     </div>
                 </div>
+                <div class="card">
+                    <div class="card-header">
+                        <button id="select-items-button" class="btn btn-secondary d-none">Select items to approve</button>
+                        <button type="button" class="btn btn-primary mb-0 d-none" id="submit-button">Approve
+                            Selected</button>
+                        @if ($data->items->pluck('serials')->flatten()->where('borrow_status', 'Approved')->isNotEmpty())
+                            <button type="button" class="btn btn-success mb-0" id="item-received-button">Item
+                                Received</button>
+                        @endif
+                        @if ($data->items->pluck('serials')->flatten()->where('borrow_status', 'Received')->isNotEmpty())
+                            <button type="button" class="btn btn-success mb-0" id="item-returned-button">Mark all as
+                                Returned</button>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        <div id="alert"></div>
+                        @if ($data['items']->isNotEmpty())
+                            <table class="table table-bordered table-striped" id="example1">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Equipment</th>
+                                        <th>Description</th>
+                                        <th>Brand</th>
+                                        <th>Condition during borrow</th>
+                                        <th>Item Status</th>
+                                        <th>Product Serial</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($data->items as $item)
+                                        @foreach ($item->serials as $serial)
+                                            <tr
+                                                class="{{ $serial->borrow_status === 'Pending' ? 'pending-item' : '' }}
+                                                {{ $serial->borrow_status === 'Declined' ? 'bg-warning' : '' }}
+                                                {{ $serial->borrow_status === 'Received' ? 'bg-success' : '' }}
+                                                ">
+                                                <td>
+                                                    <input type="checkbox" class="item-checkbox d-none"
+                                                        data-id="{{ $serial->id }}">
+                                                </td>
+                                                <td>{{ $serial->equipmentBelongs->equipment }}</td>
+                                                <td>{{ $serial->serialRelatedItem->description }}</td>
+                                                <td>{{ $serial->equipmentBelongs->brand }}</td>
+                                                <td>{{ $item->remarks }}</td>
+                                                <td>{{ $serial->serialRelatedItem->condition }}</td>
+                                                <td>{{ $serial->serialRelatedItem->serial_no }}</td>
+                                                <td>{{ $serial->borrow_status }}</td>
+                                                <td>
+                                                    @if (
+                                                        $serial->borrow_status === 'Returned' &&
+                                                            $serial->serialRelatedItem->condition === 'Queue' &&
+                                                            $serial->serialRelatedItem->notes === null)
+                                                        <button type="button" class="btn btn-danger mark-damaged"
+                                                            data-id="{{ $serial->serialRelatedItem->id }}"><i
+                                                                class="fas fa-times-circle"></i>
+                                                            Damaged</button>
+                                                        <button type="button" class="btn btn-primary add-notes"
+                                                            data-note-id="{{ $serial->serialRelatedItem->id }}">
+                                                            <i class="far fa-copy"></i>
+                                                            Add Note
+                                                        </button>
+                                                    @endif
+
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>No items found.</p>
+                        @endif
+                    </div>
+                </div>
+
+
             </div>
         </section>
     </div>
+
+    <div class="modal fade" id="itemReceivedModal" tabindex="-1" role="dialog" aria-labelledby="itemReceivedModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemReceivedModalLabel">Item Received</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Confirm that the item(s) have been received.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="confirm-receive">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="itemReturnedModal" tabindex="-1" role="dialog"
+        aria-labelledby="itemReturnedModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemReturnedModalLabel">Mark all Borrowed Items Returned</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Confirm that the item(s) have been returned.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="confirm-returned">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="itemMarkAsDamageModal" tabindex="-1" role="dialog"
+        aria-labelledby="itemMarkAsDamageModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemMarkAsDamageModalLabel">Item Damaged</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Confirm that the item(s) have been damaged.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="confirm-damaged">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="itemAddNote" tabindex="-1" role="dialog" aria-labelledby="itemAddNoteLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemAddNoteLabel">Add Notes to current Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="">Notes</label>
+                        <textarea class="form-control" name="notes" id="notes" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="confirm-notes">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 @section('scripts')
-    <script>
-        // $(document).ready(function() {
-        //     $(document).on('click', '.print_btn', function() {
-        //         var requisitionID = $(this).data('id');
-        //         var csrfToken = $('meta[name="csrf-token"]').attr('content');
-
-        //         $.ajax({
-        //             url: `/laboratory/requisitions/print-data/${requisitionID}`,
-        //             type: 'POST',
-        //             headers: {
-        //                 'X-CSRF-TOKEN': csrfToken
-        //             },
-        //             success: function(response) {
-        //                 var requisition = response.requisition;
-        //                 var items = response.items;
-        //                 var item_details = response.item_details;
-        //                 var students = response.students;
-
-        //                 // Prepare a single list of all students
-        //                 var studentList = '<ol style="list-style-type: decimal;">';
-        //                 students.forEach((student, index) => {
-        //                     studentList += `<li>${student.student_name}</li>`;
-        //                 });
-        //                 studentList += '</ol>';
-
-        //                 var html = `
-    //                 <div class="printable-area" style="font-family: Arial, sans-serif;">
-    //                     <!-- Instructor's Requisition Slip -->
-    //                     <div style="page-break-after: always; border: 1px solid #000; padding: 20px;">
-    //                         <div style="text-align: center; margin-bottom: 20px;">
-    //                             <img src="{{ asset('path_to_logo') }}" alt="University Logo" style="height: 100px; margin-bottom: 10px;">
-    //                             <h2 style="margin: 0;">Saint Paul University Philippines</h2>
-    //                             <p style="margin: 0;">Tuguegarao City, Cagayan 3500</p>
-    //                             <h3 style="margin: 5px 0;">School of Information Technology and Engineering</h3>
-    //                             <h1 style="margin: 10px 0;">INSTRUCTOR'S REQUISITION SLIP</h1>
-    //                         </div>
-
-    //                         <table width="100%" border="1" cellpadding="10" style="border-collapse: collapse;">
-    //                             <tr>
-    //                                 <td><strong>Date & Time Filed:</strong> ${requisition.date_time_filed}</td>
-    //                                 <td><strong>Date & Time Needed:</strong> ${requisition.date_time_needed}</td>
-    //                             </tr>
-    //                             <tr>
-    //                                 <td><strong>Instructor:</strong> ${requisition.instructor_name}</td>
-    //                                 <td><strong>Subject:</strong> ${requisition.subject}</td>
-    //                             </tr>
-    //                             <tr>
-    //                                 <td><strong>Course & Year:</strong> ${requisition.course_year}</td>
-    //                                 <td><strong>Title of Activity:</strong> ${requisition.activity}</td>
-    //                             </tr>
-    //                         </table>
-
-    //                         <h2>Item Details</h2>
-    //                         <table width="100%" border="1" cellpadding="5" style="border-collapse: collapse;">
-    //                             <thead>
-    //                                 <tr>
-    //                                     <th>Qty</th>
-    //                                     <th>Apparatus/Equipment/Tools</th>
-    //                                     <th>Specification Brand/Model</th>
-    //                                     <th>Remarks</th>
-    //                                 </tr>
-    //                             </thead>
-    //                             <tbody>`;
-        //                 items.forEach((item, index) => {
-        //                     html += `
-    //                                 <tr>
-    //                                     <td>${item.quantity}</td>
-    //                                     <td>${item_details[index].equipment}</td>
-    //                                     <td>${item_details[index].brand}</td>
-    //                                     <td>${item.remarks}</td>
-    //                                 </tr>`;
-        //                 });
-        //                 html += `
-    //                             </tbody>
-    //                         </table>
-
-    //                         <br><br>
-    //                         <div style="text-align: left;">
-    //                             <p><strong>Approved by:</strong> SITE Dean</p>
-    //                             <p><strong>Prepared by:</strong> Eng’s Lab Assistant</p>
-    //                         </div>
-    //                     </div>
-
-    //                     <!-- Student's Borrower's Slip -->
-    //                     <div style="border: 1px solid #000; padding: 20px;">
-    //                         <div style="text-align: center; margin-bottom: 20px;">
-    //                             <img src="{{ asset('path_to_logo') }}" alt="University Logo" style="height: 100px; margin-bottom: 10px;">
-    //                             <h2 style="margin: 0;">Saint Paul University Philippines</h2>
-    //                             <p style="margin: 0;">Tuguegarao City, Cagayan 3500</p>
-    //                             <h3 style="margin: 5px 0;">School of Information Technology and Engineering</h3>
-    //                             <h1 style="margin: 10px 0;">STUDENT'S BORROWER'S SLIP</h1>
-    //                         </div>
-
-    //                         <table width="100%" border="1" cellpadding="10" style="border-collapse: collapse;">
-    //                             <tr>
-    //                                 <td><strong>Date & Time Filed:</strong> ${requisition.date_time_filed}</td>
-    //                                 <td><strong>Date & Time Needed:</strong> ${requisition.date_time_needed}</td>
-    //                             </tr>
-    //                             <tr>
-    //                                 <td><strong>Instructor:</strong> ${requisition.instructor_name}</td>
-    //                                 <td><strong>Subject:</strong> ${requisition.subject}</td>
-    //                             </tr>
-    //                             <tr>
-    //                                 <td><strong>Course & Year:</strong> ${requisition.course_year}</td>
-    //                                 <td><strong>Title of Activity:</strong> ${requisition.activity}</td>
-    //                             </tr>
-    //                         </table>
-
-    //                         <h2>Item Details</h2>
-    //                         <table width="100%" border="1" cellpadding="5" style="border-collapse: collapse;">
-    //                             <thead>
-    //                                 <tr>
-    //                                     <th>Qty</th>
-    //                                     <th>Apparatus/Equipment/Tools</th>
-    //                                     <th>Specification Brand/Model</th>
-    //                                     <th>Group</th>
-    //                                 </tr>
-    //                             </thead>
-    //                             <tbody>`;
-        //                 items.forEach((item, index) => {
-        //                     html += `
-    //                                 <tr>
-    //                                     <td>${item.quantity}</td>
-    //                                     <td>${item_details[index].equipment}</td>
-    //                                     <td>${item_details[index].brand}</td>
-    //                                     <td>
-    //                                         ${studentList}
-    //                                     </td>
-    //                                 </tr>`;
-        //                 });
-        //                 html += `
-    //                             </tbody>
-    //                         </table>
-
-    //                         <br><br>
-    //                         <div style="text-align: left;">
-    //                             <p><strong>Approved by:</strong> Instructor</p>
-    //                             <p><strong>Prepared by:</strong> Eng’s Lab Assistant</p>
-    //                         </div>
-    //                     </div>
-    //                 </div>`;
-
-        //                 // Open new window for printing
-        //                 var newWindow = window.open('', '_blank');
-        //                 newWindow.document.write(html);
-        //                 newWindow.document.write(
-        //                     '<style>body { font-family: Arial, sans-serif; }</style>');
-        //                 newWindow.document.close();
-        //                 newWindow.focus();
-        //                 newWindow.print(); // Trigger the print dialog
-        //                 newWindow.close();
-        //             },
-        //         });
-        //     });
-        // });
-    </script>
-
-
-
-
     <script>
         $(document).ready(function() {
             setupSignatureCanvas('#userSignature', '#signature');
@@ -393,5 +368,203 @@
             const signatureData = canvas.toDataURL('image/png');
             $(inputId).val(signatureData);
         }
+
+
+
+        //approve
+        const $selectItemsButton = $('#select-items-button');
+        const $submitButton = $('#submit-button');
+        const $checkboxes = $('.item-checkbox');
+        const $itemReceivedButton = $('#item-received-button');
+        const $markAllReturnButton = $('#item-returned-button');
+        let selectedIds = [];
+
+        // Add Cancel button dynamically
+        const $cancelButton = $('<button>', {
+            id: 'cancel-button',
+            class: 'btn btn-danger mb-0 d-none ml-3',
+            text: 'Cancel',
+        }).insertAfter($submitButton);
+
+        const hasPending = $('#example1 .pending-item').length > 0;
+        if (hasPending) {
+            $selectItemsButton.removeClass('d-none');
+        }
+
+        // Show checkboxes and buttons when clicking "Select items to approve"
+        $selectItemsButton.on('click', function() {
+            $checkboxes.removeClass('d-none'); // Show checkboxes
+            $submitButton.removeClass('d-none'); // Show "Approve Selected" button
+            $cancelButton.removeClass('d-none'); // Show "Cancel" button
+            $selectItemsButton.addClass('d-none'); // Hide "Select items to approve" button
+        });
+
+        // Handle checkbox selection
+        $('#example1').on('change', '.item-checkbox', function() {
+            const id = $(this).data('id');
+            if (this.checked) {
+                selectedIds.push(id);
+            } else {
+                selectedIds = selectedIds.filter(selectedId => selectedId !== id);
+            }
+        });
+
+        // Handle "Approve Selected" button
+        $submitButton.on('click', function() {
+            if (selectedIds.length === 0) {
+                $('#alert')
+                    .html(`
+                    <div class='alert alert-warning alert-dismissible fade show text-white' role='alert'>
+                        Please Select items first!
+                        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                            <span aria-hidden='true'>&times;</span>
+                        </button>
+                    </div>
+                `)
+                    .fadeIn();
+
+                // Automatically fade out the alert after 1.5 seconds
+                setTimeout(() => {
+                    $('#alert .alert').fadeOut(500, function() {
+                        $('#alert').empty(); // Clear the alert content after fadeOut
+                    });
+                }, 5500);
+
+            }
+            $.ajax({
+                url: '{{ route('laboratory.approve-requisition-items') }}',
+                type: 'POST',
+                data: {
+                    selectedIds: selectedIds,
+                    requisitionId: '{{ $id }}',
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+                    if (response.success) {
+                        location.reload();
+                    }
+                }
+            });
+        });
+
+        // Handle "Cancel" button
+        $cancelButton.on('click', function() {
+            // Deselect all checkboxes
+            $checkboxes.prop('checked', false).addClass('d-none');
+            selectedIds = []; // Reset selected IDs
+            $submitButton.addClass('d-none'); // Hide "Approve Selected" button
+            $cancelButton.addClass('d-none'); // Hide "Cancel" button
+            $selectItemsButton.removeClass('d-none'); // Show "Select items to approve" button
+        });
+
+        if ($('#example1 .bg-warning').length === 0) {
+            $itemReceivedButton.removeClass('d-none');
+        }
+
+        $itemReceivedButton.on('click', function() {
+            $('#itemReceivedModal').modal('show');
+        });
+
+
+        $('#confirm-receive').on('click', function() {
+            $.ajax({
+                url: '{{ route('laboratory.item-received') }}',
+                type: 'POST',
+                data: {
+                    requisitionId: '{{ $id }}',
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+
+                    if (response.success) {
+                        $('#itemReceivedModal').modal('hide');
+                        location.reload();
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '.mark-damaged', function() {
+            var itemId = $(this).data('id')
+            $('#itemMarkAsDamageModal').modal('show')
+            triggerConfirm(itemId)
+        })
+
+        let selectedItemId
+
+        $(document).on('click', '.add-notes', function() {
+            var selectedId = $(this).data('note-id');
+            $('#itemAddNote').modal('show');
+            selectedItemId = selectedId
+        });
+
+        $(document).on('click', '#confirm-notes', function() {
+            var notesContent = $('#notes').val();
+            saveNotes(selectedItemId, notesContent);
+        });
+
+        function saveNotes(selectedItemId, notesContent) {
+            $.ajax({
+                url: '{{ route('laboratory.item-add-notes') }}',
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    notes: notesContent,
+                    item_id: selectedItemId
+                },
+                success: function(response) {
+                    console.log(response);
+                    if (response.success) {
+                        $('#itemAddNote').modal('hide')
+                        location.reload()
+                    }
+                }
+            })
+        }
+
+        function triggerConfirm(itemId) {
+            $('#confirm-damaged').on('click', function() {
+                $.ajax({
+                    url: '{{ route('laboratory.item-damaged') }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        selectedId: itemId
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        if (response.success) {
+                            $('#itemMarkAsDamageModal').modal('hide')
+                            location.reload()
+                        }
+                    }
+                })
+            })
+        }
+
+        $markAllReturnButton.on('click', function() {
+            $('#itemReturnedModal').modal('show');
+        });
+
+        $('#confirm-returned').on('click', function() {
+            $.ajax({
+                url: '{{ route('laboratory.item-returned') }}',
+                type: 'POST',
+                data: {
+                    requisitionId: '{{ $id }}',
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    console.log(response);
+
+                    if (response.success) {
+                        $('#itemReturnedModal').modal('hide');
+                        location.reload();
+                    }
+                }
+            });
+        });
     </script>
 @endsection

@@ -10,7 +10,7 @@ class Requisition extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category',
+        'category_id',
         'date_time_filed',
         'date_time_needed',
         'instructor_id',
@@ -22,6 +22,11 @@ class Requisition extends Model
         'labtext_signature'
     ];
 
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 
     public function items()
     {

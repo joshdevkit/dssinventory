@@ -62,7 +62,7 @@
                                                 <td>{{ $fluid->date_acquired }}</td>
                                                 <td>
 
-                                                <div class="btn-group btn-group-sm" role="group"
+                                                    <div class="btn-group btn-group-sm" role="group"
                                                         aria-label="Basic example">
                                                         <a href="{{ route('fluids.show', ['fluid' => $fluid->id]) }}"
                                                             class="btn btn-info bg-blue-500 py-2 rounded-lg mr-2 text-white">View
@@ -83,13 +83,10 @@
                                                             </button>
                                                         </form>
                                                     </div>
-
-                                                  
-
                                                 </td>
                                             @empty
                                             <tr>
-                                                <td colspan="7" class="text-center">{{ __('Data Empty') }}</td>
+                                                <td colspan="8" class="text-center">{{ __('Data Empty') }}</td>
                                             </tr>
                                         @endforelse
 

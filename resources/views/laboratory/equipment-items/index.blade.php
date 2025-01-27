@@ -31,7 +31,6 @@
                         <table id="example1" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Type</th>
                                     <th>Equipment</th>
                                     <th>Serial No</th>
@@ -39,17 +38,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($items as $index => $item)
+                                @forelse ($equipments as $item)
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $item['type'] }}</td>
-                                        <td>{{ $item['equipment'] ?? 'N/A' }}</td>
-                                        <td>{{ $item['serial_no'] }}</td>
-                                        <td>{{ $item['condition'] }}</td>
+                                        <td>{{ $item->equipment->category->name }}</td>
+                                        <td>{{ $item->equipment->equipment }}</td>
+                                        <td>{{ $item->serial_no }}</td>
+                                        <td>{{ $item->condition }}</td>
+
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center">No items found.</td>
+                                        <td colspan="4" class="text-center">No items found.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

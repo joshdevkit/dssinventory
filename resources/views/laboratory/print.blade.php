@@ -25,31 +25,31 @@
 
     <div class="date-section">
         <div class="date-box">
-            <p>{{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_filed)) }}</p>
+            <p>{{ date('F d, Y h:i A', strtotime($data->date_time_filed)) }}</p>
             <p><strong>Date & Time Filed</strong></p>
         </div>
         <div class="date-box">
-            <p>{{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_needed)) }}</p>
+            <p>{{ date('F d, Y h:i A', strtotime($data->date_time_needed)) }}</p>
             <p><strong>Date & Time Needed</strong></p>
         </div>
     </div>
 
     <div class="info-row">
         <div class="info-box">
-            <p>{{ $data['requisition']->instructor_name }}</p>
+            <p>{{ $data->instructor_name }}</p>
             <p><strong>Instructor</strong></p>
         </div>
         <div class="info-box">
-            <p>{{ $data['requisition']->subject }}</p>
+            <p>{{ $data->subject }}</p>
             <p><strong>Subject</strong></p>
         </div>
         <div class="info-box">
-            <p>{{ $data['requisition']->course_year }}</p>
+            <p>{{ $data->course_year }}</p>
             <p><strong>Course/Year</strong></p>
         </div>
     </div>
 
-    <p class="text-activity">Title of Activity: {{ $data['requisition']->activity }}</p>
+    <p class="text-activity">Title of Activity: {{ $data->activity }}</p>
 
     <table>
         <thead>
@@ -58,22 +58,43 @@
                 <th>Apparatus/Equipment/Tools</th>
                 <th>Specification/Brand/Model</th>
                 <th>Remarks</th>
+                <th>Serial Numbers</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($data['items'] as $item)
-                @php
-                    $itemDetail = $data['item_details']->firstWhere('id', $item->equipment_id);
-                @endphp
                 <tr>
                     <td>{{ $item->quantity }}</td>
-                    <td>{{ $itemDetail->equipment }}</td>
-                    <td>{{ $itemDetail->brand }}</td>
+                    <td>
+                        @if ($item->serials->isNotEmpty())
+                            {{ $item->serials->first()->equipmentBelongs->equipment ?? 'N/A' }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td>
+                        @if ($item->serials->isNotEmpty())
+                            {{ $item->serials->first()->equipmentBelongs->brand ?? 'N/A' }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
                     <td>{{ $item->remarks }}</td>
+                    <td>
+                        @if ($item->serials->isNotEmpty())
+                            @foreach ($item->serials as $serial)
+                                {{ $serial->serialRelatedItem->serial_no ?? 'N/A' }}<br>
+                            @endforeach
+                        @else
+                            No Serial Numbers
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+
+
 
     @php
         $dean = \App\Models\User::role('dean')->first();
@@ -82,11 +103,11 @@
 
     <div class="signature-section">
         <div class="signature">
-            <p>Approved by: <img style="width: 250px" src="{{ asset($data['requisition']->dean_signature) }}"></p>
+            <p>Approved by: <img style="width: 250px" src="{{ asset($data->dean_signature) }}"></p>
             <p class="has-underline">{{ $dean ? $dean->name : 'Dean' }}</p>
         </div>
         <div class="signature">
-            <p>Approved by: <img style="width: 250px" src="{{ asset($data['requisition']->labtext_signature) }}"></p>
+            <p>Approved by: <img style="width: 250px" src="{{ asset($data->labtext_signature) }}"></p>
             <p class="has-underline">{{ $labAssistant ? $labAssistant->name : "Eng'g Lab. Assistant" }}</p>
         </div>
     </div>
@@ -111,30 +132,30 @@
 
     <div class="date-section">
         <div class="date-box">
-            <p>{{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_filed)) }}</p>
+            <p>{{ date('F d, Y h:i A', strtotime($data->date_time_filed)) }}</p>
             <p><strong>Date & Time Filed</strong></p>
         </div>
         <div class="date-box">
-            <p>{{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_needed)) }}</p>
+            <p>{{ date('F d, Y h:i A', strtotime($data->date_time_needed)) }}</p>
             <p><strong>Date & Time Needed</strong></p>
         </div>
     </div>
 
     <div class="info-row">
         <div class="info-box">
-            <p>{{ $data['requisition']->instructor_name }}</p>
+            <p>{{ $data->instructor_name }}</p>
             <p><strong>Instructor</strong></p>
         </div>
         <div class="info-box">
-            <p>{{ $data['requisition']->subject }}</p>
+            <p>{{ $data->subject }}</p>
             <p><strong>Subject</strong></p>
         </div>
         <div class="info-box">
-            <p>{{ $data['requisition']->course_year }}</p>
+            <p>{{ $data->course_year }}</p>
             <p><strong>Course/Year</strong></p>
         </div>
     </div>
-    <p class="text-activity">Title of Activity: {{ $data['requisition']->activity }}</p>
+    <p class="text-activity">Title of Activity: {{ $data->activity }}</p>
     <p class="text-activity_t">To whom It May Concern:</p>
     <p class="justify indent">This is to certify that I/WE the undersigned, have borrowed the tools, equipment,
         instrument listed below. In
@@ -148,36 +169,24 @@
             </tr>
         </thead>
         <tbody>
-            @if ($data['items']->isNotEmpty())
-                @php
-                    $itemDetail = $data['item_details']->firstWhere('id', $data['items'][0]->equipment_id);
-                @endphp
+            @foreach ($data['items'] as $item)
                 <tr>
-                    <td>{{ $data['items']->first()->quantity }}</td>
-                    <td>{{ $itemDetail->equipment }}<br>
-                        {{ $itemDetail->description ?? '' }}<br>
-                        {{ $itemDetail->brand }}<br>
+                    <td>{{ $item->quantity }}</td>
+                    <td>
+                        @if ($item->serials->isNotEmpty())
+                            {{ $item->serials->first()->equipmentBelongs->equipment ?? 'N/A' }} /
+                            {{ $item->serials->first()->equipmentBelongs->brand ?? 'N/A' }}
+                        @else
+                            N/A
+                        @endif
                     </td>
-                    <td rowspan="{{ $data['items']->count() }}">
+                    <td>
                         @foreach ($data['students'] as $student)
-                            {{ $student->student_name }}<br>
+                            {{ $student->student_name ?? 'N/A' }}<br>
                         @endforeach
                     </td>
                 </tr>
-
-                @foreach ($data['items']->slice(1) as $item)
-                    @php
-                        $itemDetail = $data['item_details']->firstWhere('id', $item->equipment_id);
-                    @endphp
-                    <tr>
-                        <td>{{ $item->quantity }}</td>
-                        <td>{{ $itemDetail->equipment }}<br>
-                            {{ $itemDetail->description ?? '' }}<br>
-                            {{ $itemDetail->brand }}<br>
-                        </td>
-                    </tr>
-                @endforeach
-            @endif
+            @endforeach
         </tbody>
     </table>
     @php
@@ -187,11 +196,11 @@
 
     <div class="signature-section">
         <div class="signature">
-            <p>Approved by: <img style="width: 250px" src="{{ asset($data['requisition']->dean_signature) }}"></p>
+            <p>Approved by: <img style="width: 250px" src="{{ asset($data->dean_signature) }}"></p>
             <p class="has-underline">{{ $dean ? $dean->name : 'Dean' }}</p>
         </div>
         <div class="signature">
-            <p>Approved by: <img style="width: 250px" src="{{ asset($data['requisition']->labtext_signature) }}"></p>
+            <p>Approved by: <img style="width: 250px" src="{{ asset($data->labtext_signature) }}"></p>
             <p class="has-underline">{{ $labAssistant ? $labAssistant->name : "Eng'g Lab. Assistant" }}</p>
         </div>
     </div>

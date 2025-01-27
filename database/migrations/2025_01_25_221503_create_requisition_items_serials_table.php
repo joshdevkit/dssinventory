@@ -19,6 +19,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('requisition_items_id')->references('id')->on('requisitions_items')->onDelete('cascade');
+            $table->foreign('equipment_id')->references('id')->on('laboratory_equipment')->onDelete('cascade');
+            $table->foreign('equipment_serial_id')->references('id')->on('laboratory_equipment_items')->onDelete('cascade');
         });
     }
 

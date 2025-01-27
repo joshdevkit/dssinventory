@@ -14,4 +14,15 @@ class RequisitionItemsSerial extends Model
         'equipment_id',
         'equipment_serial_id'
     ];
+
+
+    public function equipmentBelongs()
+    {
+        return $this->belongsTo(LaboratoryEquipment::class, 'equipment_id');
+    }
+
+    public function serialRelatedItem()
+    {
+        return $this->belongsTo(LaboratoryEquipmentItem::class, 'equipment_serial_id');
+    }
 }

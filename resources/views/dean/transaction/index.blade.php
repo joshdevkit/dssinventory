@@ -9,7 +9,7 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Transactions</h1>
                     </div>
-                  
+
                 </div>
             </div><!-- /.container-fluid -->
         </section>
@@ -58,20 +58,10 @@
                                         @foreach ($requisitions as $requisition)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $requisition->instructor_name }}</td>
-                                                <td>{{ $requisition->category }}</td>
+                                                <td>{{ $requisition->instructor->name }}</td>
+                                                <td>{{ $requisition->category->name }}</td>
                                                 <td>
-                                                    @if ($requisition->category === 'Construction')
-                                                        {{ $requisition->construction_item_quantity }}
-                                                    @elseif($requisition->category === 'Testings')
-                                                        {{ $requisition->testing_item_quantity }}
-                                                    @elseif($requisition->category === 'Surveying')
-                                                        {{ $requisition->surveying_item_quantity }}
-                                                    @elseif($requisition->category === 'Fluids')
-                                                        {{ $requisition->fluid_item_quantity }}
-                                                    @elseif($requisition->category === 'Computer Engineering')
-                                                        {{ $requisition->computer_engineering_item_quantity }}
-                                                    @endif
+                                                    {{ $requisition->items[0]->quantity }}
                                                 </td>
                                                 <td>
                                                     {{ $requisition->activity }}

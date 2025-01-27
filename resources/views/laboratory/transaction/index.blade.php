@@ -52,19 +52,9 @@
                                             @foreach ($requisitions as $requisition)
                                                 <tr>
                                                     <td>{{ $requisition->id }}</td>
-                                                    <td>{{ $requisition->instructor_name }}</td>
+                                                    <td>{{ $requisition->instructor->name }}</td>
                                                     <td>
-                                                        @if ($requisition->category === 'Constructions')
-                                                            {{ $requisition->construction_item_quantity }}
-                                                        @elseif($requisition->category === 'Testings')
-                                                            {{ $requisition->testing_item_quantity }}
-                                                        @elseif($requisition->category === 'Surveyings')
-                                                            {{ $requisition->surveying_item_quantity }}
-                                                        @elseif($requisition->category === 'Fluids')
-                                                            {{ $requisition->fluid_item_quantity }}
-                                                        @elseif($requisition->category === 'ComputerEngineering')
-                                                            {{ $requisition->computer_engineering_item_quantity }}
-                                                        @endif
+                                                        {{ $requisition->items[0]->quantity }}
                                                     </td>
                                                     <td>
                                                         {{ $requisition->activity }}
@@ -86,14 +76,8 @@
                                                         <td class="d-flex flex-auto">
                                                             <a class="btn btn-primary btn-sm mr-3"
                                                                 href="{{ route('borrows.show', ['id' => $requisition->id]) }}"><i
-                                                                    class="fas fa-eye"></i></a>
-                                                            @if (
-                                                                $requisition->status != 'Approved and Prepared' &&
-                                                                    $requisition->status != 'Returned' &&
-                                                                    $requisition->status != 'Damaged' &&
-                                                                    $requisition->status != 'Repaired' &&
-                                                                    $requisition->status != 'Declined' &&
-                                                                    $requisition->status != 'XXX')
+                                                                    class="fas fa-eye"></i> View Requisition Details</a>
+                                                            {{-- @if ($requisition->status != 'Approved and Prepared' && $requisition->status != 'Returned' && $requisition->status != 'Damaged' && $requisition->status != 'Repaired' && $requisition->status != 'Declined' && $requisition->status != 'XXX')
                                                                 <div class="dropdown">
                                                                     <a class="btn btn-secondary dropdown-toggle" href="#"
                                                                         role="button" data-toggle="dropdown"
@@ -102,16 +86,9 @@
                                                                     </a>
                                                                     <div class="dropdown-menu">
                                                                         @if ($requisition->status === 'Pending')
-                                                                            @if (
-                                                                                $requisition->computer_engineering_actual_quantity > 0 ||
-                                                                                    $requisition->testing_actual_quantity > 0 ||
-                                                                                    $requisition->surveying_actual_quantity > 0 ||
-                                                                                    $requisition->fluid_actual_quantity > 0 ||
-                                                                                    $requisition->computer_engineering_actual_quantity > 0)
-                                                                                <a class="dropdown-item" data-status="Approved"
-                                                                                    data-id="{{ $requisition->id }}"
-                                                                                    href="{{ route('borrows.show', ['id' => $requisition->id]) }}">Approved</a>
-                                                                            @endif
+                                                                            <a class="dropdown-item" data-status="Approved"
+                                                                                data-id="{{ $requisition->id }}"
+                                                                                href="{{ route('borrows.show', ['id' => $requisition->id]) }}">Approved</a>
                                                                             <a class="dropdown-item " data-status="Declined"
                                                                                 data-id="{{ $requisition->id }}"
                                                                                 href="{{ route('borrows.show', ['id' => $requisition->id]) }}">Declined</a>
@@ -150,7 +127,7 @@
                                                                     <a class="dropdown-item status-option" data-status="XXX"
                                                                         data-id="{{ $requisition->id }}" href="#">XXX</a>
                                                                 </div>
-                                                            @endif
+                                                            @endif --}}
                                                         </td>
                                                     @endhasrole
                                                 </tr>

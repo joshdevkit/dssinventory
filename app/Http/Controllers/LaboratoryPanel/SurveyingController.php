@@ -5,6 +5,9 @@ namespace App\Http\Controllers\LaboratoryPanel;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\SurveyingRequest;
+use App\Models\Category;
+use App\Models\LaboratoryEquipment;
+use App\Models\LaboratoryEquipmentItem;
 use App\Models\Surveying;
 use App\Models\SurveyingSerials;
 use Illuminate\Http\Request;
@@ -17,8 +20,11 @@ class SurveyingController extends Controller
      */
     public function index()
     {
-
-        $surveyings = Surveying::with('items')->get();
+        $surveyings = LaboratoryEquipment::with(['category', 'items'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Surveying');
+            })
+            ->get();
 
         return view('laboratory.surveying.index', compact('surveyings'));
     }
@@ -68,7 +74,8 @@ class SurveyingController extends Controller
 
         $quantity = count($serialNumbers);
 
-        $surveying = Surveying::create([
+        $surveying = LaboratoryEquipment::create([
+            'category_id' => 2,
             'equipment' => $equipment,
             'brand' => $brand,
             'description' => $request->input('description'),
@@ -78,14 +85,14 @@ class SurveyingController extends Controller
         ]);
 
         foreach ($serialNumbers as $index => $serialNo) {
-            SurveyingSerials::create([
-                'product_id' => $surveying->id,
+            LaboratoryEquipmentItem::create([
+                'laboratory_equipment_id' => $surveying->id,
                 'serial_no' => $serialNo,
                 'condition' => $conditions[$index],
             ]);
         }
 
-        return redirect()->url('/surveyings')->with([
+        return redirect()->to('/surveyings')->with([
             'message' => 'successfully created !',
             'alert-type' => 'success'
         ]);
@@ -94,15 +101,16 @@ class SurveyingController extends Controller
 
     public function show($id)
     {
-        $data = Surveying::with('items')->find($id);
+        $data = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.surveying.show', compact('data'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Surveying $surveying)
+    public function edit($id)
     {
+        $surveying = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.surveying.edit', compact('surveying'));
     }
 
@@ -129,7 +137,7 @@ class SurveyingController extends Controller
             ]
         );
         // Find the ComputerEngineering model by its ID
-        $surveyings = Surveying::findOrFail($id);
+        $surveyings = LaboratoryEquipment::findOrFail($id);
         $existingItemIds = $request->input('serial_id', []);
         $newItems = $request->input('items', []);
 
@@ -184,7 +192,7 @@ class SurveyingController extends Controller
      */
 
 
-    public function destroy(Surveying $surveying)
+    public function destroy(LaboratoryEquipment $surveying)
     {
         $surveying->delete();
 

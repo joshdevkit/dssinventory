@@ -4,6 +4,8 @@ namespace App\Http\Controllers\LaboratoryPanel;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TestingRequest;
+use App\Models\LaboratoryEquipment;
+use App\Models\LaboratoryEquipmentItem;
 use Illuminate\Http\Request;
 use App\Models\Testing;
 use App\Models\TestingSerials;
@@ -15,7 +17,13 @@ class TestingController extends Controller
      */
     public function index()
     {
-        $testings = Testing::with('items')->get();
+        $testings = LaboratoryEquipment::with(['category', 'items'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Testing & Mechanics');
+            })
+            ->get();
+
+        // $testings = Testing::with('items')->get();
 
         return view('laboratory.testing.index', compact('testings'));
     }
@@ -61,7 +69,8 @@ class TestingController extends Controller
 
         $quantity = count($serialNumbers);
 
-        $surveying = Testing::create([
+        $surveying = LaboratoryEquipment::create([
+            'category_id' => 3,
             'equipment' => $equipment,
             'brand' => $brand,
             'description' => $request->input('description'),
@@ -71,8 +80,8 @@ class TestingController extends Controller
         ]);
 
         foreach ($serialNumbers as $index => $serialNo) {
-            TestingSerials::create([
-                'product_id' => $surveying->id,
+            LaboratoryEquipmentItem::create([
+                'laboratory_equipment_id' => $surveying->id,
                 'serial_no' => $serialNo,
                 'condition' => $conditions[$index],
             ]);
@@ -98,15 +107,16 @@ class TestingController extends Controller
 
     public function show($id)
     {
-        $data = Testing::with('items')->find($id);
+        $data = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.testing.show', compact('data'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Testing $testing) // Note the variable name change here to match the model binding
+    public function edit($id) // Note the variable name change here to match the model binding
     {
+        $testing = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.testing.edit', compact('testing')); // Make sure 'surveying' is the variable used
     }
 
@@ -123,7 +133,7 @@ class TestingController extends Controller
 
     public function update(Request $request, $id)
     {
-        $testings = Testing::findOrFail($id);
+        $testings = LaboratoryEquipment::findOrFail($id);
         $existingItemIds = $request->input('serial_id', []);
         $newItems = $request->input('items', []);
         $testings->update([
@@ -177,7 +187,7 @@ class TestingController extends Controller
      */
 
 
-    public function destroy(Testing $testing)  // Here it should be Testing, not TestingRequest
+    public function destroy(LaboratoryEquipment $testing)  // Here it should be Testing, not TestingRequest
     {
         $testing->delete();
 

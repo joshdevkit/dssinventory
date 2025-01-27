@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ComputerEngineeringRequest;
 use App\Models\ComputerEngineering;
 use App\Models\ComputerEngineeringSerial;
+use App\Models\LaboratoryEquipment;
+use App\Models\LaboratoryEquipmentItem;
 use Illuminate\Http\Request;
 
 class ComputerEngineeringController extends Controller
@@ -15,7 +17,11 @@ class ComputerEngineeringController extends Controller
      */
     public function index()
     {
-        $computerEngineering = ComputerEngineering::all();
+        $computerEngineering = LaboratoryEquipment::with(['category', 'items'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Computer Engineering');
+            })
+            ->get();
 
         return view('laboratory.computer_engineering.index', compact('computerEngineering'));
     }
@@ -54,7 +60,8 @@ class ComputerEngineeringController extends Controller
 
         $quantity = count($serialNumbers);
 
-        $computerEngineering = ComputerEngineering::create([
+        $computerEngineering = LaboratoryEquipment::create([
+            'category_id' => 1,
             'equipment' => $equipment,
             'brand' => $brand,
             'quantity' => $quantity,
@@ -63,8 +70,8 @@ class ComputerEngineeringController extends Controller
         ]);
 
         foreach ($serialNumbers as $index => $serialNo) {
-            ComputerEngineeringSerial::create([
-                'product_id' => $computerEngineering->id,
+            LaboratoryEquipmentItem::create([
+                'laboratory_equipment_id' => $computerEngineering->id,
                 'serial_no' => $serialNo,
                 'condition' => $conditions[$index],
             ]);
@@ -79,7 +86,7 @@ class ComputerEngineeringController extends Controller
 
     public function show($id)
     {
-        $data = ComputerEngineering::with('items')->find($id);
+        $data = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.computer_engineering.show', compact('data'));
     }
 
@@ -88,7 +95,7 @@ class ComputerEngineeringController extends Controller
      */
     public function edit($id)
     {
-        $computerEngineering = ComputerEngineering::with('items')->findOrFail($id);
+        $computerEngineering = LaboratoryEquipment::with('items')->findOrFail($id);
         return view('laboratory.computer_engineering.edit', compact('computerEngineering'));
     }
 
@@ -128,7 +135,7 @@ class ComputerEngineeringController extends Controller
         );
 
         // Find the ComputerEngineering model by its ID
-        $computerEngineering = ComputerEngineering::findOrFail($id);
+        $computerEngineering = LaboratoryEquipment::findOrFail($id);
 
         // Get existing item IDs and new items from the request
         $existingItemIds = $request->input('serial_id', []);
@@ -191,7 +198,7 @@ class ComputerEngineeringController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $computerEngineering = ComputerEngineering::find($id);
+        $computerEngineering = LaboratoryEquipment::find($id);
         $computerEngineering->delete();
 
         return back()->with([

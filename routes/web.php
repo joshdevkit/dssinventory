@@ -139,6 +139,14 @@ Route::middleware(['auth', 'role:laboratory'])->group(function () {
     Route::get('/laboratory/transaction', [TeacherborrowController::class, 'index'])->name('transaction.index');
     Route::get('/laboratory/view-requisition-details/{id}', [TeacherborrowController::class, 'retrieve'])->name('borrows.show');
     Route::put('/laboratory/update-requisition-details/{id}', [TeacherborrowController::class, 'decision'])->name('teachers-borrows.update');
+    Route::post('/laboratory/approve-requisition-items', [TeacherborrowController::class, 'approve_selected'])->name('laboratory.approve-requisition-items');
+    Route::post('/laborator/item-received', [TeacherBorrowController::class, 'item_received'])->name('laboratory.item-received');
+    Route::post('/laborator/item-add-notes', [TeacherBorrowController::class, 'item_notes'])->name('laboratory.item-add-notes');
+    Route::post('/laborator/item-mark-damaged', [TeacherBorrowController::class, 'item_damaged'])->name('laboratory.item-damaged');
+    Route::post('/laborator/item-mark-returned', [TeacherBorrowController::class, 'item_returned'])->name('laboratory.item-returned');
+
+
+
 
     Route::post('/laboratory/transaction/{id}/approve', [TeacherborrowController::class, 'approve'])->name('laboratory.transaction.approve');
     Route::post('/laboratory/transaction/{id}/disapprove', [TeacherborrowController::class, 'disapprove'])->name('laboratory.transaction.disapprove');

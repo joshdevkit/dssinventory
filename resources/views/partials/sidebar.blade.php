@@ -29,12 +29,22 @@
                 <!-- Equipment -->
                 <li class="nav-header text-light"> Equipment</li>
 
+                {{-- @php
+                    $categories = \App\Models\Category::all();
+                    $routes = ['laboratory-computer-engineering', 'surveyings', 'testings', 'constructions', 'fluids'];
+                @endphp
+
+                @foreach ($categories as $cat)
+
+                @endforeach --}}
                 <!-- Computer Engineering -->
                 <li class="nav-item {{ request()->routeIs('laboratory-computer-engineering') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('laboratory-computer-engineering.index') ? 'active' : '' }}"
                         href="{{ route('laboratory-computer-engineering.index') }}">
                         <i class="nav-icon fas fa-desktop" style="color: #ffff"></i>
-                        <p class="text-light">{{ __('Computer Engineering') }}</p>
+                        <p class="text-light">
+                            {{ __('Computer Engineering') }}
+                        </p>
                     </a>
                 </li>
                 <!-- Surveying -->
@@ -78,7 +88,6 @@
                         </p>
                     </a>
                 </li>
-
                 <li class="nav-item {{ request()->routeIs('laboratory-equipments.index') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('laboratory-equipments.index') ? 'active' : '' }}"
                         href="{{ route('laboratory-equipments.index') }}">
@@ -88,7 +97,6 @@
                         </p>
                     </a>
                 </li>
-
                 <li class="nav-item {{ request()->routeIs('change-password') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('change-password.index') ? 'active' : '' }}"
                         href="{{ route('change-password.index') }}">

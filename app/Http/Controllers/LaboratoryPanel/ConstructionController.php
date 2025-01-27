@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ConstructionRequest;
 use App\Models\Construction;
 use App\Models\ConstructionSerials;
+use App\Models\LaboratoryEquipment;
+use App\Models\LaboratoryEquipmentItem;
 use Illuminate\Http\Request;
 
 class ConstructionController extends Controller
@@ -16,7 +18,13 @@ class ConstructionController extends Controller
      */
     public function index()
     {
-        $constructions = Construction::with('items')->get();
+        $constructions = LaboratoryEquipment::with(['category', 'items'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'General Construction');
+            })
+            ->get();
+
+        // $constructions = Construction::with('items')->get();
 
         return view('laboratory.construction.index', compact('constructions'));
     }
@@ -61,7 +69,8 @@ class ConstructionController extends Controller
 
         $quantity = count($serialNumbers);
 
-        $computerEngineering = Construction::create([
+        $computerEngineering = LaboratoryEquipment::create([
+            'category_id' => 4,
             'equipment' => $equipment,
             'brand' => $brand,
             'quantity' => $quantity,
@@ -70,8 +79,8 @@ class ConstructionController extends Controller
         ]);
 
         foreach ($serialNumbers as $index => $serialNo) {
-            ConstructionSerials::create([
-                'product_id' => $computerEngineering->id,
+            LaboratoryEquipmentItem::create([
+                'laboratory_equipment_id' => $computerEngineering->id,
                 'serial_no' => $serialNo,
                 'condition' => $conditions[$index],
             ]);
@@ -86,15 +95,16 @@ class ConstructionController extends Controller
 
     public function show($id)
     {
-        $data = Construction::with('items')->find($id);
+        $data = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.construction.show', compact('data'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Construction $construction) // Note the variable name change here to match the model binding
+    public function edit($id) // Note the variable name change here to match the model binding
     {
+        $construction = LaboratoryEquipment::with('items')->find($id);
         return view('laboratory.construction.edit', compact('construction'));
     }
 
@@ -120,7 +130,7 @@ class ConstructionController extends Controller
                 'items.*.serial_no.required' => 'Please enter Serial No'
             ]
         );
-        $construction = Construction::findOrFail($id);
+        $construction = LaboratoryEquipment::findOrFail($id);
 
         // Get existing item IDs and new items from the request
         $existingItemIds = $request->input('serial_id', []);
@@ -179,7 +189,7 @@ class ConstructionController extends Controller
      */
 
 
-    public function destroy(Construction $construction)
+    public function destroy(LaboratoryEquipment $construction)
     {
         $construction->delete();
 

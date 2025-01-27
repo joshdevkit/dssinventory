@@ -24,7 +24,7 @@
                 <div class="card">
                     <div class="card-header py-20 bg-yellow-500">
                         <h1 class="text-white text-center">This request was made at
-                            {{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_filed)) }}</h1>
+                            {{ date('F d, Y h:i A', strtotime($data->date_time_filed)) }}</h1>
                     </div>
                     <div class="card-body">
                         @if ($errors->any())
@@ -38,13 +38,13 @@
                         @endif
                         <div class="mb-10 mt-3 col-md-12">
                             @php
-                                $requisitionStatus = $data['requisition']->status;
+                                $requisitionStatus = $data->status;
                             @endphp
                             @if ($requisitionStatus == 'Accepted by Dean')
                                 <p>You Approved this requisitions.</p>
                             @elseif($requisitionStatus != 'Accepted by Dean')
-                                <form action="{{ route('dean.borrows.update', ['id' => $data['requisition']->id]) }}"
-                                    method="POST" enctype="multipart/form-data">
+                                <form action="{{ route('dean.borrows.update', ['id' => $data->id]) }}" method="POST"
+                                    enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
                                     <div class="form-group" id="signt">
@@ -59,9 +59,9 @@
                                         <textarea name="feedback" rows="3" class="form-control"></textarea>
                                     </div>
                                     <div class="d-flex">
-                                        <input type="hidden" name="category" value="{{ $data['requisition']->category }}">
+                                        <input type="hidden" name="category" value="{{ $data->category->name }}">
                                         <input type="hidden" name="requisition_id" id="requisition_id"
-                                            value="{{ $data['requisition']->id }}">
+                                            value="{{ $data->id }}">
                                         <button type="submit"
                                             class="btn btn-success  text-white mr-3 approve">Approve</button>
 
@@ -74,43 +74,17 @@
                             <div class="col-md-4">
                                 <h4>Requisition Details</h4>
                                 <ul>
-                                    <li><strong>Category:</strong> {{ $data['requisition']->category }}</li>
+                                    <li><strong>Category:</strong> {{ $data->category->name }}</li>
                                     <li><strong>Date Filed:</strong>
-                                        {{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_filed)) }}</li>
+                                        {{ date('F d, Y h:i A', strtotime($data->date_time_filed)) }}</li>
                                     <li><strong>Date Needed:</strong>
-                                        {{ date('F d, Y h:i A', strtotime($data['requisition']->date_time_needed)) }}</li>
-                                    <li><strong>Instructor:</strong> {{ $data['requisition']->instructor_name }}</li>
-                                    <li><strong>Subject:</strong> {{ $data['requisition']->subject }}</li>
-                                    <li><strong>Course/Year:</strong> {{ $data['requisition']->course_year }}</li>
-                                    <li><strong>Activity:</strong> {{ $data['requisition']->activity }}</li>
-                                    <li><strong>Status:</strong> {{ $data['requisition']->status }}</li>
+                                        {{ date('F d, Y h:i A', strtotime($data->date_time_needed)) }}</li>
+                                    <li><strong>Instructor:</strong> {{ $data->instructor->name }}</li>
+                                    <li><strong>Subject:</strong> {{ $data->subject }}</li>
+                                    <li><strong>Course/Year:</strong> {{ $data->course_year }}</li>
+                                    <li><strong>Activity:</strong> {{ $data->activity }}</li>
+                                    <li><strong>Status:</strong> {{ $data->status }}</li>
                                 </ul>
-                            </div>
-                            <div class="col-md-4">
-                                <h4>Items</h4>
-                                @if ($data['items']->isNotEmpty())
-                                    <ul>
-                                        @foreach ($data['items'] as $item)
-                                            @php
-                                                $itemDetail = $data['item_details']->firstWhere(
-                                                    'id',
-                                                    $item->equipment_id,
-                                                );
-                                            @endphp
-                                            <li>
-                                                <strong>{{ $itemDetail->equipment ?? 'Unknown' }}</strong> -
-                                                {{ $itemDetail->description ?? 'No description' }}
-                                                <br>
-                                                <strong>Brand:</strong> {{ $itemDetail->brand ?? 'Unknown' }} <br>
-                                                <strong>Quantity:</strong> {{ $item->quantity }} <br>
-                                                <strong>Condition during borrow:</strong>
-                                                {{ $item->remarks }}
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <p>No items found.</p>
-                                @endif
                             </div>
                             <div class="col-md-4">
                                 <h4><strong>Students</strong></h4>
@@ -129,6 +103,43 @@
                         </div>
                         <a type="cancel" class="btn btn-danger float-right"
                             href="{{ url('/dean/transactions') }}">{{ __('Exit') }}</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        @if ($data['items']->isNotEmpty())
+                            <table class="table table-bordered table-striped" id="example1">
+                                <thead>
+                                    <tr>
+                                        <th>Equipment</th>
+                                        <th>Description</th>
+                                        <th>Brand</th>
+                                        <th>Condition during borrow</th>
+                                        <th>Product Serial</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($data->items as $item)
+                                        @foreach ($item->serials as $serial)
+                                            @if ($serial->borrow_status === 'Approved')
+                                                <tr>
+                                                    <td>{{ $serial->equipmentBelongs->equipment ?? 'N/A' }}</td>
+                                                    <td>{{ $serial->serialRelatedItem->description ?? 'N/A' }}</td>
+                                                    <td>{{ $serial->equipmentBelongs->brand ?? 'N/A' }}</td>
+                                                    <td>{{ $item->remarks }}</td>
+                                                    <td>{{ $serial->serialRelatedItem->serial_no ?? 'N/A' }}</td>
+                                                    <td>{{ $serial->borrow_status }}</td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>No items found.</p>
+                        @endif
                     </div>
                 </div>
 

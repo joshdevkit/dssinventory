@@ -15,4 +15,10 @@ class RequisitionsItems extends Model
         'quantity',
         'remarks'
     ];
+
+
+    public function serials()
+    {
+        return $this->hasMany(RequisitionItemsSerial::class,  'requisition_items_id');
+    }
 }
