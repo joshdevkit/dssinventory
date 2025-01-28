@@ -69,7 +69,7 @@ Route::middleware(['auth', 'role:site secretary'])->group(function () {
 
     Route::get('office/calendaro', [CalendaroController::class, 'index'])->name('office.calendaro');
     Route::get('/office/transactions', [TransactionOfficeController::class, 'index'])->name('office-admin.transactions');
-
+    Route::get('/office/print-transaction', [TransactionOfficeController::class, 'print'])->name('office.transaction-print');
 
 
     Route::get('/office/transactions/details/{id}', [TransactionOfficeController::class, 'details'])->name('office-admin.transactions-details');
@@ -163,12 +163,53 @@ Route::middleware(['auth', 'role:laboratory'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
+
     Route::get('superadmin/dashboard', [SuperadminController::class, 'index'])->name('superadmin.dashboard');
     Route::get('superadmin/computer_engineering', [SComputerController::class, 'index'])->name('superadmin.computer_engineering.index');
-    Route::get('superadmin/construction', [SConstructionController::class, 'index'])->name('superadmin.construction.index');
-    Route::get('superadmin/fluid', [SFLuidController::class, 'index'])->name('superadmin.fluid.index');
+    Route::get('superadmin/computer_engineering/create', [SComputerController::class, 'create'])->name('superadmin.computer_engineering.create');
+    Route::get('superadmin/computer_engineering/store', [SComputerController::class, 'store'])->name('superadmin.computer_engineering.store');
+    Route::get('superadmin/computer_engineering/{id}/edit', [SComputerController::class, 'edit'])->name('superadmin.computer_engineering.edit');
+    Route::get('superadmin/computer_engineering/{id}/show', [SComputerController::class, 'show'])->name('superadmin.computer_engineering.show');
+    Route::put('superadmin/computer_engineering/{id}/update', [SComputerController::class, 'update'])->name('superadmin.computer_engineering.update');
+    Route::delete('superadmin/computer_engineering/{id}/destroy', [SComputerController::class, 'destroy'])->name('superadmin.computer_engineering.destroy');
+
+
     Route::get('superadmin/testing', [STestingController::class, 'index'])->name('superadmin.testing.index');
+    Route::get('superadmin/testing/create', [STestingController::class, 'create'])->name('superadmin.testing.create');
+    Route::post('superadmin/store', [STestingController::class, 'store'])->name('superadmin.testing.store');
+    Route::get('superadmin/testing/{id}/edit', [STestingController::class, 'edit'])->name('superadmin.testing.edit');
+    Route::get('superadmin/testing/{id}/show', [STestingController::class, 'show'])->name('superadmin.testing.show');
+    Route::put('superadmin/testing/{id}/update', [STestingController::class, 'update'])->name('superadmin.testing.update');
+    Route::delete('superadmin/testing/{id}/destroy', [STestingController::class, 'destroy'])->name('superadmin.testing.destroy');
+
+    Route::get('superadmin/construction', [SConstructionController::class, 'index'])->name('superadmin.construction.index');
+    Route::get('superadmin/construction/create', [SConstructionController::class, 'create'])->name('superadmin.construction.create');
+    Route::post('superadmin/construction/store', [SConstructionController::class, 'store'])->name('superadmin.construction.store');
+    Route::get('superadmin/construction/{id}/edit', [SConstructionController::class, 'edit'])->name('superadmin.construction.edit');
+    Route::get('superadmin/construction/{id}/show', [SConstructionController::class, 'show'])->name('superadmin.construction.show');
+    Route::put('superadmin/construction/{id}/update', [SConstructionController::class, 'update'])->name('superadmin.construction.update');
+    Route::delete('superadmin/construction/{id}/destroy', [SConstructionController::class, 'destroy'])->name('superadmin.construction.destroy');
+
     Route::get('superadmin/surveying', [SSurveyingController::class, 'index'])->name('superadmin.surveying.index');
+    Route::get('superadmin/surveying/create', [SSurveyingController::class, 'create'])->name('superadmin.surveying.create');
+    Route::post('superadmin/surveying/store', [SSurveyingController::class, 'store'])->name('superadmin.surveying.store');
+    Route::get('superadmin/surveying/{id}/edit', [SSurveyingController::class, 'edit'])->name('superadmin.surveying.edit');
+    Route::get('superadmin/surveying/{id}/show', [SSurveyingController::class, 'show'])->name('superadmin.surveying.show');
+    Route::put('superadmin/surveying/{id}/update', [SSurveyingController::class, 'update'])->name('superadmin.surveying.update');
+    Route::delete('superadmin/surveying/{id}/destroy', [SSurveyingController::class, 'destroy'])->name('superadmin.surveying.destroy');
+
+
+    Route::get('superadmin/fluid', [SFLuidController::class, 'index'])->name('superadmin.fluid.index');
+    Route::get('superadmin/fluid/create', [SFLuidController::class, 'create'])->name('superadmin.fluid.create');
+    Route::get('superadmin/fluid/store', [SFLuidController::class, 'store'])->name('superadmin.fluid.store');
+    Route::get('superadmin/fluid/{id}/show', [SFLuidController::class, 'show'])->name('superadmin.fluid.show');
+    Route::get('superadmin/fluid/{id}/edit', [SFLuidController::class, 'edit'])->name('superadmin.fluid.edit');
+    Route::put('superadmin/fluid/{id}/update', [SFLuidController::class, 'update'])->name('superadmin.fluid.update');
+    Route::delete('superadmin/fluid/{id}/destroy', [SFLuidController::class, 'destroy'])->name('superadmin.fluid.destroy');
+
+
+
+
     Route::get('superadmin/equipment', [SEquipmentController::class, 'index'])->name('superadmin.equipment.index');
     Route::get('superadmin/supplies', [SSuppliesController::class, 'index'])->name('superadmin.supplies.index');
     Route::resource('users', UserManagementController::class);

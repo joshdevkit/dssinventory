@@ -173,6 +173,7 @@
                 "responsive": true,
                 "lengthChange": false,
                 "autoWidth": false,
+                "ordering": false, // Disable column reordering
             });
             $('#example2').DataTable({
                 "paging": true,

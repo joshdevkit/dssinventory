@@ -9,7 +9,7 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Transactions</h1>
                     </div>
-                 
+
                 </div>
             </div><!-- /.container-fluid -->
         </section>
@@ -51,33 +51,21 @@
                                         @foreach ($requisitions as $requisition)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $requisition->instructor_name }}</td>
+                                                <td>{{ $requisition->instructor->name }}</td>
                                                 <td>
-                                                    @if ($requisition->category === 'Construction')
-                                                        {{ $requisition->construction_item_quantity }}
-                                                    @elseif($requisition->category === 'Testings')
-                                                        {{ $requisition->testing_item_quantity }}
-                                                    @elseif($requisition->category === 'Surveying')
-                                                        {{ $requisition->surveying_item_quantity }}
-                                                    @elseif($requisition->category === 'Fluids')
-                                                        {{ $requisition->fluid_item_quantity }}
-                                                    @elseif($requisition->category === 'ComputerEngineering')
-                                                        {{ $requisition->computer_engineering_item_quantity }}
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    {{ $requisition->activity }}
+                                                    {{ $requisition->items[0]->quantity }}
                                                 </td>
                                                 <td>{{ date('F d, Y h:i A', strtotime($requisition->date_time_filed)) }}
                                                 </td>
                                                 <td>{{ $requisition->status }}
                                                 </td>
                                                 <td>
-                                                    {{ \Carbon\Carbon::parse($requisition->date_time_filed)->diffInDays(now()) }}
-                                                    days
-                                                </td>
+                                                    {{ $requisition->status === 'Returned' ? '' : \Carbon\Carbon::parse($requisition->date_time_filed)->diffInDays(now()) . ' days' }}
 
-                                                <td></td>
+                                                </td>
+                                                <td>
+                                                    {{ $requisition->status === 'Returned' ? date('F d, Y h:i A', strtotime($requisition->returned_date)) : '' }}
+                                                </td>
                                                 @hasrole('laboratory')
                                                     <td class="d-flex flex-auto">
                                                         @if ($requisition->status != 'Approved and Prepared')
@@ -115,6 +103,8 @@
                                                             </div>
                                                         @endif
                                                     </td>
+                                                    @elsehasrole('superadmin')
+                                                    <td></td>
                                                 @endhasrole
                                             </tr>
                                         @endforeach

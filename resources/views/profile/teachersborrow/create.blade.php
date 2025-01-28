@@ -58,20 +58,22 @@
                                     <select class="form-control" id="category" name="category"
                                         onchange="this.form.submit()">
                                         <option value="">Select a category</option>
-                                        <option value="constructions"
-                                            {{ session('category') == 'constructions' ? 'selected' : '' }}>
+                                        <option value="General Construction"
+                                            {{ session('category') == 'General Construction' ? 'selected' : '' }}>
                                             Construction</option>
-                                        <option value="testings" {{ session('category') == 'testings' ? 'selected' : '' }}>
+                                        <option value="Testing & Mechanics"
+                                            {{ session('category') == 'Testing & Mechanics' ? 'selected' : '' }}>
                                             Testings
                                         </option>
-                                        <option value="surveyings"
-                                            {{ session('category') == 'surveyings' ? 'selected' : '' }}>
+                                        <option value="Surveying"
+                                            {{ session('category') == 'Surveying' ? 'selected' : '' }}>
                                             Surveyings</option>
-                                        <option value="fluids" {{ session('category') == 'fluids' ? 'selected' : '' }}>
+                                        <option value="Hydraulics and Fluids"
+                                            {{ session('category') == 'Hydraulics and Fluids' ? 'selected' : '' }}>
                                             Fluid
                                         </option>
-                                        <option value="computerEngineering"
-                                            {{ session('category') == 'computerEngineering' ? 'selected' : '' }}>
+                                        <option value="Computer Engineering"
+                                            {{ session('category') == 'Computer Engineering' ? 'selected' : '' }}>
                                             Computer Engineering</option>
                                     </select>
                                 </div>
@@ -80,7 +82,7 @@
                             @if (session('category'))
                                 <form id="submitForm" action="{{ route('teachersborrow.store') }}" method="POST">
                                     @csrf
-                                    <input type="hidden" name="category" value="{{ ucfirst(session('category')) }}">
+                                    <input type="hidden" name="category" value="{{ session('category') }}">
                                     <div class="form-row mb-3">
                                         <div class="col">
                                             <label for="dateFiled">Date & Time Filed:</label>
@@ -131,7 +133,7 @@
                                                         <option value="{{ $item['id'] }}"
                                                             data-brand="{{ $item['brand'] }}"
                                                             data-quantity="{{ $item['count'] }}">
-                                                            {{ $item['equipment'] }} ({{ $item['count'] }} available)
+                                                            {{ $item['equipment'] }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -146,8 +148,9 @@
 
                                             <div class="col">
                                                 <label for="qty-0">Quantity:</label>
-                                                <input type="number" class="form-control validate quantity-input"
-                                                    id="qty-0" name="items[0][quantity]" data-max-quantity="0">
+                                                <input readonly type="number"
+                                                    class="form-control validate quantity-input" id="qty-0"
+                                                    name="items[0][quantity]" data-max-quantity="0">
                                             </div>
                                             <div class="col">
                                                 <label for="brand-0">Brand:</label>
@@ -204,6 +207,7 @@
                 allowClear: true,
                 width: '100%'
             });
+
             var itemIndex = 1;
 
             function addItemRow() {
@@ -214,50 +218,50 @@
                 }
 
                 var itemRow = `
-                    <div class="item-row form-row mb-3">
-                        <div class="col col-2">
-                            <label for="item-${itemIndex}">Equipment</label>
-                            <select class="form-control validate item-select" id="item-${itemIndex}" name="items[${itemIndex}][item_id]">
-                                <option value="">Select an item</option>`;
+            <div class="item-row form-row mb-3">
+                <div class="col col-2">
+                    <label for="item-${itemIndex}">Equipment</label>
+                    <select class="form-control validate item-select" id="item-${itemIndex}" name="items[${itemIndex}][item_id]">
+                        <option value="">Select an item</option>`;
 
                 $.each(items, function(index, item) {
                     itemRow += `<option value="${item.id}" data-brand="${item.brand}" data-quantity="${item.count}">
-                                            ${item.equipment} (${item.count} available)
-                                            </option>`;
+                            ${item.equipment} (${item.count} available)
+                        </option>`;
                 });
 
                 itemRow += `
-                            </select>
-                        </div>
-                        <div class="col col-4">
-                            <label for="serial-${itemIndex}">Items</label>
-                            <select class="form-control validate serial-select" id="serial-${itemIndex}" name="items[${itemIndex}][items][]" multiple>
-                                <option value="">Select Serial</option>
-                            </select>
-                        </div>
-                        <div class="col">
-                            <label for="qty-${itemIndex}">Quantity:</label>
-                            <input type="number" class="form-control validate quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" data-max-quantity="0">
-                        </div>
-                        <div class="col">
-                            <label for="brand-${itemIndex}">Brand:</label>
-                            <input type="text" class="form-control validate" id="brand-${itemIndex}" name="items[${itemIndex}][brand]" readonly>
-                        </div>
-                        <div class="col">
-                            <label for="remarks-${itemIndex}">Condition:</label>
-                            <input type="text" class="form-control validate" id="remarks-${itemIndex}" name="items[${itemIndex}][remarks]" placeholder="Enter condition">
-                        </div>
-                        <input type="hidden" id="item-id-${itemIndex}" name="items[${itemIndex}][item_id]" value="">
-                        <div class="col-md-3 form-group align-self-end mt-4">
-                            <button type="button" class="btn btn-danger remove-item">Remove</button>
-                        </div>
-                    </div>`;
+                    </select>
+                </div>
+                <div class="col col-4">
+                    <label for="serial-${itemIndex}">Items</label>
+                    <select class="form-control validate serial-select" id="serial-${itemIndex}" name="items[${itemIndex}][items][]" multiple>
+                        <option value="">Select Serial</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="qty-${itemIndex}">Quantity:</label>
+                    <input  readonly type="number" class="form-control validate quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" data-max-quantity="0">
+                </div>
+                <div class="col">
+                    <label for="brand-${itemIndex}">Brand:</label>
+                    <input type="text" class="form-control validate" id="brand-${itemIndex}" name="items[${itemIndex}][brand]" readonly>
+                </div>
+                <div class="col">
+                    <label for="remarks-${itemIndex}">Condition:</label>
+                    <input type="text" class="form-control validate" id="remarks-${itemIndex}" name="items[${itemIndex}][remarks]" placeholder="Enter condition">
+                </div>
+                <input type="hidden" id="item-id-${itemIndex}" name="items[${itemIndex}][item_id]" value="">
+                <div class="col-md-3 form-group align-self-end absolute" style="margin-top: 2rem;">
+                    <x-danger-button type="button" class="btn btn-danger remove-item">Remove</x-danger-button>
+                </div>
+            </div>`;
 
                 $('#items').append(itemRow);
                 $('#serial-' + itemIndex).select2({
                     placeholder: "Select Serial",
                     allowClear: true,
-                    width: '100%',
+                    width: '100%'
                 });
                 itemIndex++;
             }
@@ -318,10 +322,19 @@
                 $(this).closest('.item-row').remove();
             });
 
+            $(document).on('change', '.serial-select', function() {
+                var $this = $(this);
+                var selectedSerials = $this.val();
+                var itemRow = $this.closest('.item-row');
+                var qtyInput = itemRow.find('.quantity-input');
+
+                // Automatically set the quantity to the number of selected serials
+                qtyInput.val(selectedSerials.length);
+            });
+
             $('.add-item').on('click', function() {
                 addItemRow();
             });
-
         });
 
 

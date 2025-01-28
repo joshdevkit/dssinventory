@@ -9,7 +9,7 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Transactions</h1>
                     </div>
-                
+
                 </div>
             </div><!-- /.container-fluid -->
         </section>

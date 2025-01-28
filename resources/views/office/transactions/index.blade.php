@@ -32,6 +32,10 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
+                            <div class="card-header">
+                                <a class="btn btn-primary btn-sm float-right"
+                                    href="{{ route('office.transaction-print') }}"> <i class="fas fa-print"></i> Print</a>
+                            </div>
                             <!-- /.card-header -->
                             <div class="card-body">
                                 <table id="example1" class="table table-bordered table-striped">
@@ -223,7 +227,8 @@
                     <p>Are you sure you want to set the status to <strong id="statusText"></strong>?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger bg-red-500 text-white" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger bg-red-500 text-white"
+                        data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-success bg-green-600 text-white"
                         id="confirmStatusBtn">Confirm</button>
                 </div>

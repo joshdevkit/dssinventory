@@ -245,54 +245,54 @@
     <!-- Bootstrap 4 -->
 
     <script>
-        // $(document).ready(function() {
+        $(document).ready(function() {
 
-        //     $.ajax({
-        //         url: "{{ route('laboratory-office.chart') }}",
-        //         method: 'GET',
-        //         success: function(data) {
+            $.ajax({
+                url: "{{ route('laboratory-office.chart') }}",
+                method: 'GET',
+                success: function(data) {
 
-        //             const labels = Object.keys(data);
-        //             const values = Object.values(data);
-        //             var ctx = $('#pieChart2')[0].getContext('2d');
-        //             var pieChart = new Chart(ctx, {
-        //                 type: 'pie',
-        //                 data: {
-        //                     labels: labels,
-        //                     datasets: [{
-        //                         label: 'Requisitions by Category',
-        //                         data: values,
-        //                         backgroundColor: ['#FF5733', '#33A1FF', '#FFEB33',
-        //                             '#33FF57'
-        //                         ],
-        //                         borderColor: ['#FF5733', '#33A1FF', '#FFEB33',
-        //                             '#33FF57'
-        //                         ],
-        //                         borderWidth: 1
-        //                     }]
-        //                 },
-        //                 options: {
-        //                     responsive: true,
-        //                     plugins: {
-        //                         legend: {
-        //                             position: 'top',
-        //                         },
-        //                         tooltip: {
-        //                             callbacks: {
-        //                                 label: function(tooltipItem) {
-        //                                     return tooltipItem.label + ': ' + tooltipItem
-        //                                         .raw;
-        //                                 }
-        //                             }
-        //                         }
-        //                     }
-        //                 }
-        //             });
-        //         },
-        //         error: function(xhr, status, error) {
-        //             console.error('Error fetching data:', error);
-        //         }
-        //     });
-        // });
+                    const labels = Object.keys(data);
+                    const values = Object.values(data);
+                    var ctx = $('#pieChart2')[0].getContext('2d');
+                    var pieChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Requisitions by Category',
+                                data: values,
+                                backgroundColor: ['#FF5733', '#33A1FF', '#FFEB33',
+                                    '#33FF57'
+                                ],
+                                borderColor: ['#FF5733', '#33A1FF', '#FFEB33',
+                                    '#33FF57'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(tooltipItem) {
+                                            return tooltipItem.label + ': ' + tooltipItem
+                                                .raw;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        });
     </script>
 @endsection

@@ -7,6 +7,7 @@ use App\Models\ComputerEngineering;
 use App\Models\Construction;
 use App\Models\Equipment;
 use App\Models\Fluid;
+use App\Models\LaboratoryEquipment;
 use App\Models\OfficeRequest;
 use App\Models\Requisition;
 use App\Models\Supplies;
@@ -20,11 +21,31 @@ class DeanController extends Controller
     public function index()
     {
         $totals = [
-            'computer' => ComputerEngineering::count('equipment'),
-            'construction' => Construction::count('equipment'),
-            'fluid' => Fluid::count('equipment'),
-            'surveying' => Surveying::count('equipment'),
-            'testing' => Testing::count('equipment'),
+            'computer' => LaboratoryEquipment::with(['category', 'items'])
+                ->whereHas('category', function ($query) {
+                    $query->where('name', 'Computer Engineering');
+                })
+                ->count('equipment'),
+            'construction' => LaboratoryEquipment::with(['category', 'items'])
+                ->whereHas('category', function ($query) {
+                    $query->where('name', 'General Construction');
+                })
+                ->count('equipment'),
+            'surveying' => LaboratoryEquipment::with(['category', 'items'])
+                ->whereHas('category', function ($query) {
+                    $query->where('name', 'Surveying');
+                })
+                ->count('equipment'),
+            'testing' => LaboratoryEquipment::with(['category', 'items'])
+                ->whereHas('category', function ($query) {
+                    $query->where('name', 'Testing & Mechanics');
+                })
+                ->count('equipment'),
+            'fluid' => LaboratoryEquipment::with(['category', 'items'])
+                ->whereHas('category', function ($query) {
+                    $query->where('name', 'Hydraulics and Fluids');
+                })
+                ->count('equipment'),
             'supplies' => Supplies::count(),
             'equipments' => Equipment::count(),
             'transactions' => Requisition::count(),

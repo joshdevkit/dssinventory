@@ -152,10 +152,13 @@ class TransactionOfficeController extends Controller
                 $join->on('office_requests.item_id', '=', 'equipment.id')
                     ->where('office_requests.item_type', '=', 'Equipments');
             })
+            // Join the borrowed_equipment table here
+            ->leftJoin('borrowed_equipment', 'borrowed_equipment.office_requests_id', '=', 'office_requests.id')
             ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
             ->orderBy('created_at', 'DESC')
             ->get();
 
+        // dd($requests);
 
         /**
          * @var App\Models\User;
@@ -584,5 +587,49 @@ class TransactionOfficeController extends Controller
         }
 
         return response()->json(["success" => true, 'message' => 'Selected items have been mark as returned.']);
+    }
+
+
+    public function print()
+    {
+        $requests = DB::table('office_requests')
+            ->select(
+                'office_requests.*',
+                'users.name as requested_by_name',
+                DB::raw("CASE
+                    WHEN office_requests.item_type = 'Supplies' THEN supplies_items.serial_no
+                    WHEN office_requests.item_type = 'Equipments' THEN equipment_items.serial_no
+                 END as serial_no"),
+                DB::raw("CASE
+                    WHEN office_requests.item_type = 'Supplies' THEN supplies.item
+                    WHEN office_requests.item_type = 'Equipments' THEN equipment2.item
+                 END as item_name")
+            )
+            ->leftJoin('supplies', function ($join) {
+                $join->on('office_requests.item_id', '=', 'supplies.id')
+                    ->where('office_requests.item_type', '=', 'Supplies');
+            })
+            ->leftJoin('equipment as equipment1', function ($join) {
+                $join->on('office_requests.item_id', '=', 'equipment1.id')
+                    ->where('office_requests.item_type', '=', 'Equipments');
+            })
+            ->leftJoin('borrowed_equipment', 'borrowed_equipment.office_requests_id', '=', 'office_requests.id')
+            ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
+            ->leftJoin('equipment_items', function ($join) {
+                $join->on('borrowed_equipment.equipment_serial_id', '=', 'equipment_items.id')
+                    ->where('office_requests.item_type', '=', 'Equipments');
+            })
+            ->leftJoin('equipment as equipment2', 'equipment_items.equipment_id', '=', 'equipment2.id')
+            ->leftJoin('supplies_items', function ($join) {
+                $join->on('borrowed_equipment.equipment_serial_id', '=', 'supplies_items.id')
+                    ->where('office_requests.item_type', '=', 'Supplies');
+            })
+            ->leftJoin('supplies as supplies2', 'supplies_items.supplies_id', '=', 'supplies2.id')
+            ->orderBy('office_requests.created_at', 'DESC')
+            ->get();
+        // dd($requests);
+
+
+        return view('office.transactions.print', compact('requests'));
     }
 }

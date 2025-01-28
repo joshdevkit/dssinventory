@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
     <!-- Theme style -->
+    <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
 
     <link rel="stylesheet" href="{{ asset('dist/css/adminlte.min.css') }}">
 </head>
@@ -123,7 +124,6 @@
     <!-- ./wrapper -->
     <!-- date-range-picker -->
     @yield('scripts')
-    <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
     <!-- jQuery UI -->
     <script src="{{ asset('plugins/chart.js/Chart.min.js') }}"></script>
     <!-- Bootstrap 4 -->
