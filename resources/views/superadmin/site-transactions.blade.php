@@ -56,11 +56,14 @@
                                                 <td>{{ $request->requested_by_name }}</td>
                                                 <td>
                                                     @if ($request->item_type === 'Supplies')
-                                                        {{ $request->supply_item }}
+                                                        {{ $request->item_name }}
                                                     @elseif ($request->item_type === 'Equipments')
-                                                        {{ $request->equipment_item }}
+                                                        <ul>
+                                                            <li>{{ $request->item_name }} - {{ $request->serial_no }}</li>
+                                                        </ul>
                                                     @endif
                                                 </td>
+
                                                 <td>{{ $request->quantity_requested }}</td>
                                                 <td>{{ $request->purpose }}</td>
                                                 <td>{{ $request->created_at }}</td>

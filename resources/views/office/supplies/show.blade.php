@@ -47,7 +47,7 @@
                         </div>
                         <div class="col">
                             <strong>ID:</strong> {{ $data->id }}<br>
-                            <strong>QUANTITY:</strong> {{ $data->quantity }}<br>
+                            <strong>QUANTITY:</strong> {{ $data->items->count() }}<br>
                             <strong>UNIT:</strong> {{ $data->unit }}<br>
                             <strong>ITEMS:</strong> {{ $data->item }}<br>
                             <strong>BRAND DESCRIPTION:</strong> {{ $data->brand_description }}<br>

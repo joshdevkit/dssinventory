@@ -85,6 +85,15 @@
                         </p>
                     </a>
                 </li>
+                <li class="nav-item {{ request()->routeIs('dean.laboratory-items') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('dean.laboratory-items') ? 'active' : '' }}"
+                        href="{{ route('dean.laboratory-items') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">
+                            Laboratory Items
+                        </p>
+                    </a>
+                </li>
                 <li class="nav-header text-light"> Site Office </li>
 
                 <li class="nav-item {{ request()->routeIs('dean.transactions.site') ? 'active' : '' }}">
@@ -108,6 +117,13 @@
                         href="{{ route('equipment.index') }}">
                         <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
                         <p class="text-light">{{ __('Equipment') }}</p>
+                    </a>
+                </li>
+                <li class="nav-item {{ request()->routeIs('dean.equipment-items') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('dean.equipment-items') ? 'active' : '' }}"
+                        href="{{ route('dean.equipment-items') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Equipment Items') }}</p>
                     </a>
                 </li>
 

@@ -25,4 +25,9 @@ class RequisitionItemsSerial extends Model
     {
         return $this->belongsTo(LaboratoryEquipmentItem::class, 'equipment_serial_id');
     }
+
+    public function requisition()
+    {
+        return $this->belongsTo(RequisitionsItems::class, 'requisition_items_id');
+    }
 }

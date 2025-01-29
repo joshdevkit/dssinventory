@@ -160,6 +160,7 @@ Route::middleware(['auth', 'role:laboratory'])->group(function () {
     Route::get('/laboratory/requisitions/chart', [TeacherborrowController::class, 'getChartData'])->name('laboratory-office.chart');
 
     Route::get('/laboratory/equipment-items', [LaboratoryController::class, 'equipment_items'])->name('laboratory-equipments.index');
+    Route::get('/laboratory/equipment-items-history/{id}', [LaboratoryController::class, 'history'])->name('laboratory-items-history');
 });
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
@@ -266,6 +267,11 @@ Route::middleware(['auth', 'role:dean'])->group(function () {
     Route::get('/dean/site-office-requisition', [OfficeRequisitionController::class, 'index'])->name('site-requisition.index');
     Route::get('/dean/site-office-requisition/{id}', [OfficeRequisitionController::class, 'show'])->name('site-requisition.show');
     Route::post('/dean/site-office-requisition', [OfficeRequisitionController::class, 'approve'])->name('site-requisition.approve');
+    Route::get('/dean/laboratory-items', [DeanController::class, 'lab_items'])->name('dean.laboratory-items');
+    Route::get('/dean/laboratory-items/history/{id}', [DeanController::class, 'history'])->name('dean.laboratory-items-history');
+
+    Route::get('/dean/equipment-items', [DeanController::class, 'equipment_items'])->name('dean.equipment-items');
+    Route::get('/dean/office-equipment-history/{id}', [DeanController::class, 'equipment_items_history'])->name('dean.equipment-items-history.index');
 });
 
 

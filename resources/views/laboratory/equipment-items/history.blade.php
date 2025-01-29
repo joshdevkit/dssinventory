@@ -16,7 +16,7 @@
                 @endif
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class = "text-success">List of Equipment Items</h1>
+                        <h1 class = "text-success">Laboratory Equipment Items History</h1>
                     </div>
                     <div class="col-sm-6">
 
@@ -31,31 +31,25 @@
                         <table id="example1" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>Type</th>
-                                    <th>Equipment</th>
-                                    <th>Serial No</th>
-                                    <th>Condition</th>
-                                    <th>Action</th>
+                                    <th>Equipment Serial</th>
+                                    <th>Borrowed By</th>
+                                    <th>Date Borrowed</th>
+                                    <th>Date Returned</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($equipments as $item)
+                                @foreach ($history as $item)
                                     <tr>
-                                        <td>{{ $item->equipment->category->name }}</td>
-                                        <td>{{ $item->equipment->equipment }}</td>
-                                        <td>{{ $item->serial_no }}</td>
-                                        <td>{{ $item->condition }}</td>
+                                        <td>{{ $item->serialRelatedItem->serial_no }}</td>
+                                        <td>{{ $item->requisition->requisitions->instructor->name }}</td>
+                                        <td>{{ date('F d, Y h:i A', strtotime($item->created_at)) }}</td>
                                         <td>
-                                            <a href="{{ route('laboratory-items-history', ['id' => $item->id]) }}"
-                                                class="btn btn-sm btn-info"> <i class="fas fa-list"></i>
-                                                History</a>
+                                            @if ($item->borrow_status === 'Returned')
+                                                {{ date('F d, Y h:i A', strtotime($item->returned_at)) ?? '' }}
+                                            @endif
                                         </td>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center">No items found.</td>
-                                    </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

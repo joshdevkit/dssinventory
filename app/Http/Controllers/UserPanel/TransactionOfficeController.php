@@ -10,6 +10,7 @@ use App\Models\Equipment;
 use App\Models\EquipmentItems;
 use App\Models\OfficeRequest;
 use App\Models\Supplies;
+use App\Models\SuppliesItems;
 use App\Models\User;
 use App\Notifications\ApproveOfficeMultipleRequest;
 use App\Notifications\BorrowerNotification;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\TransactionStatusNotification;
 use App\Notifications\UserNotifications;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Facades\DB;
 
 class TransactionOfficeController extends Controller
@@ -25,7 +27,6 @@ class TransactionOfficeController extends Controller
     public function selectCategory(Request $request)
     {
         $category = $request->input('category');
-
         if ($category === 'equipments') {
             $items = Equipment::with('items')->get()->map(function ($equipment) {
                 $nonQueuedNonDamagedItems = $equipment->items->filter(function ($item) {
@@ -39,10 +40,13 @@ class TransactionOfficeController extends Controller
             })->toArray();
         } elseif ($category === 'supplies') {
             $items = Supplies::with('items')->get()->map(function ($equipment) {
+                $availableItems = $equipment->items->filter(function ($item) {
+                    return $item->disposed !== 'Out';
+                });
                 return [
                     'id' => $equipment->id,
                     'item' => $equipment->item,
-                    'count' => $equipment->quantity,
+                    'count' => $availableItems->count(),
                 ];
             })->toArray();
         } else {
@@ -69,7 +73,6 @@ class TransactionOfficeController extends Controller
 
     public function store(Request $request)
     {
-
         $data = $request->validate([
             'items' => 'required|array',
             'items.*.item_id' => 'required',
@@ -88,8 +91,27 @@ class TransactionOfficeController extends Controller
         if ($data['category'] === 'Supplies') {
             foreach ($request->input('items') as $item) {
                 $item_id = $item['item_id'];
+                $quantity_requested = $item['quantity'];
+
+                // Fetch and shuffle the supplies items
+                $suppliesItems = SuppliesItems::where('supplies_id', $item_id)->get()->shuffle();
+
+                // Keep track of disposed items
+                $disposedItemsCount = 0;
+
+                foreach ($suppliesItems as $suppliesItem) {
+                    if ($disposedItemsCount < $quantity_requested) {
+                        $suppliesItem->disposed = 'Out'; // Mark the item as disposed
+                        $suppliesItem->save();
+                        $disposedItemsCount++;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Create the office request
                 OfficeRequest::create([
-                    'item_id' => $item['item_id'],
+                    'item_id' => $item_id,
                     'item_type' => $request->input('category'),
                     'quantity_requested' => $item['quantity'],
                     'requested_by' => Auth::id(),
@@ -97,6 +119,7 @@ class TransactionOfficeController extends Controller
                 ]);
             }
         }
+
 
         if ($data['category'] === 'Equipments') {
 
@@ -138,24 +161,37 @@ class TransactionOfficeController extends Controller
         $requests = DB::table('office_requests')
             ->select(
                 'office_requests.*',
-                'supplies.item as supply_item',
-                'supplies.quantity as supply_quantity',
-                'equipment.item as equipment_item',
-                'equipment.quantity as equipment_quantity',
-                'users.name as requested_by_name'
+                'users.name as requested_by_name',
+                DB::raw("CASE
+                    WHEN office_requests.item_type = 'Supplies' THEN supplies_items.serial_no
+                    WHEN office_requests.item_type = 'Equipments' THEN equipment_items.serial_no
+                 END as serial_no"),
+                DB::raw("CASE
+                    WHEN office_requests.item_type = 'Supplies' THEN supplies.item
+                    WHEN office_requests.item_type = 'Equipments' THEN equipment2.item
+                 END as item_name")
             )
             ->leftJoin('supplies', function ($join) {
                 $join->on('office_requests.item_id', '=', 'supplies.id')
                     ->where('office_requests.item_type', '=', 'Supplies');
             })
-            ->leftJoin('equipment', function ($join) {
-                $join->on('office_requests.item_id', '=', 'equipment.id')
+            ->leftJoin('equipment as equipment1', function ($join) {
+                $join->on('office_requests.item_id', '=', 'equipment1.id')
                     ->where('office_requests.item_type', '=', 'Equipments');
             })
-            // Join the borrowed_equipment table here
             ->leftJoin('borrowed_equipment', 'borrowed_equipment.office_requests_id', '=', 'office_requests.id')
             ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
-            ->orderBy('created_at', 'DESC')
+            ->leftJoin('equipment_items', function ($join) {
+                $join->on('borrowed_equipment.equipment_serial_id', '=', 'equipment_items.id')
+                    ->where('office_requests.item_type', '=', 'Equipments');
+            })
+            ->leftJoin('equipment as equipment2', 'equipment_items.equipment_id', '=', 'equipment2.id')
+            ->leftJoin('supplies_items', function ($join) {
+                $join->on('borrowed_equipment.equipment_serial_id', '=', 'supplies_items.id')
+                    ->where('office_requests.item_type', '=', 'Supplies');
+            })
+            ->leftJoin('supplies as supplies2', 'supplies_items.supplies_id', '=', 'supplies2.id')
+            ->orderBy('office_requests.created_at', 'DESC')
             ->get();
 
         // dd($requests);
@@ -281,6 +317,7 @@ class TransactionOfficeController extends Controller
 
             $item = Supplies::findOrFail($itemId);
             $itemName = $item->item;
+
             if ($request->status === 'Approved') {
                 $requestItem->status = $request->status;
                 $requestItem->save();
@@ -289,7 +326,21 @@ class TransactionOfficeController extends Controller
                 $item->quantity -= $quantityRequested;
                 $item->save();
                 $requestItem->save();
+            } else if ($request->status === "Declined") {
+                $suppliesItems = SuppliesItems::where('supplies_id', $itemId)
+                    ->where('disposed', 'Out')
+                    ->limit($quantityRequested)
+                    ->get();
+
+                foreach ($suppliesItems as $suppliesItem) {
+                    $suppliesItem->disposed = 'Okay';
+                    $suppliesItem->save();
+                }
+
+                $requestItem->status = "Declined";
+                $requestItem->save();
             }
+
 
             if (in_array($request->status, ['Approved', 'Declined', 'Received', 'Returned', 'Not Returned', 'Damaged', 'Repaired', 'XXX'])) {
                 $usersWithRole = User::role('user')->where('id', $requestItem->requested_by)->get();
@@ -577,12 +628,23 @@ class TransactionOfficeController extends Controller
 
     public function ReturnAllItems(Request $request)
     {
+        // dd($request);
         $borrowedEquipment = BorrowedEquipment::where('office_requests_id', $request->input('itemRequisitionId'))->get();
+        $officeRequest = OfficeRequest::find($request->input('itemRequisitionId'));
+        $itemIds = [];
         foreach ($borrowedEquipment as $item) {
+            $itemIds[] = $item->equipment_serial_id;
             if ($item->borrow_status !== 'Declined') {
                 $item->borrow_status = 'Returned';
                 $item->date_returned = now();
                 $item->save();
+            }
+        }
+        if ($officeRequest->item_type === "Equipments") {
+            $serials = EquipmentItems::whereIn('id', $itemIds)->get();
+            foreach ($serials as $serial) {
+                $serial->status = "Good";
+                $serial->save();
             }
         }
 

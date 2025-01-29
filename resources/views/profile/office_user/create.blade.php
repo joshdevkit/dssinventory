@@ -155,9 +155,16 @@
             // Equipment selection change (fetch serials)
             $(document).on('change', '.selected-equipment', function() {
                 var $this = $(this);
+                var itemActualQuantity = $this.find('option:selected').data('quantity');
+
                 var selectedOption = $this.find('option:selected');
                 var itemId = selectedOption.val();
+                var quantityInput = $this.closest('.item-row').find('.quantity-input');
+                quantityInput.data('max-quantity', itemActualQuantity);
+                quantityInput.attr('data-max-quantity', itemActualQuantity);
                 selectedEquipmentId = itemId;
+                console.log("Selected Item: ", selectedEquipmentId, "Available Quantity: ",
+                    itemActualQuantity);
 
                 // Initialize selectedSerials for the item if not already initialized
                 if (!selectedSerials[itemId]) {
@@ -255,9 +262,25 @@
                 console.log("Selected Equipment ID: ", selectedEquipmentId);
             });
 
-            $(".quantity-input").on("input", function() {
-                if ($(this).val() <= 0) {
-                    $(this).val(1);
+            $(document).on('input', '.quantity-input', function() {
+                var $this = $(this);
+                var enteredQuantity = parseInt($this.val());
+                var maxQuantity = $this.data('max-quantity');
+                var totalEnteredQuantity = 0;
+
+                // Calculate total entered quantity for the same item id
+                $('.quantity-input').each(function() {
+                    var itemId = $(this).closest('.item-row').find('.selected-equipment').val();
+                    if (itemId == selectedEquipmentId) {
+                        totalEnteredQuantity += parseInt($(this).val()) || 0;
+                    }
+                });
+
+                // Check if entered quantity exceeds available quantity
+                if (totalEnteredQuantity > maxQuantity) {
+                    alert('Entered quantity exceeds available quantity');
+                    $this.val(maxQuantity - (totalEnteredQuantity -
+                        enteredQuantity)); // Adjust quantity input
                 }
             });
 

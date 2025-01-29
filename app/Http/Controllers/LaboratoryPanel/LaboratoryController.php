@@ -13,6 +13,7 @@ use App\Models\FluidSerials;
 use App\Models\LaboratoryEquipment;
 use App\Models\LaboratoryEquipmentItem;
 use App\Models\Requisition;
+use App\Models\RequisitionItemsSerial;
 use App\Models\Surveying;
 use App\Models\SurveyingSerials;
 use App\Models\Testing;
@@ -62,8 +63,14 @@ class LaboratoryController extends Controller
     public function equipment_items()
     {
         $equipments = LaboratoryEquipmentItem::with('equipment.category')->get();
-
-
         return view('laboratory.equipment-items.index', compact('equipments'));
+    }
+
+    public function history($id)
+    {
+        //
+        $history = RequisitionItemsSerial::with(['serialRelatedItem', 'requisition.requisitions.instructor'])->where('equipment_serial_id', $id)->get();
+        // dd($history);
+        return view('laboratory.equipment-items.history', compact('history'));
     }
 }

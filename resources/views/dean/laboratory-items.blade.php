@@ -1,4 +1,4 @@
-@extends('layouts.labadmin')
+@extends('layouts.dean')
 
 @section('content')
     <div class="content-wrapper">
@@ -46,7 +46,7 @@
                                         <td>{{ $item->serial_no }}</td>
                                         <td>{{ $item->condition }}</td>
                                         <td>
-                                            <a href="{{ route('laboratory-items-history', ['id' => $item->id]) }}"
+                                            <a href="{{ route('dean.laboratory-items-history', ['id' => $item->id]) }}"
                                                 class="btn btn-sm btn-info"> <i class="fas fa-list"></i>
                                                 History</a>
                                         </td>

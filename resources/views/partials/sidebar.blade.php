@@ -25,7 +25,15 @@
                         <p class="text-light">{{ __('Transactions') }}</p>
                     </a>
                 </li>
-
+                <li class="nav-item {{ request()->routeIs('change-password') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('change-password.index') ? 'active' : '' }}"
+                        href="{{ route('change-password.index') }}">
+                        <i class="nav-icon fas fa-cog" style="color: #ffff"></i>
+                        <p class="text-light">
+                            Change Password
+                        </p>
+                    </a>
+                </li>
                 <!-- Equipment -->
                 <li class="nav-header text-light"> Equipment</li>
 
@@ -93,19 +101,11 @@
                         href="{{ route('laboratory-equipments.index') }}">
                         <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
                         <p class="text-light">
-                            Laboratory Equipments
+                            Laboratory Items
                         </p>
                     </a>
                 </li>
-                <li class="nav-item {{ request()->routeIs('change-password') ? 'active' : '' }}">
-                    <a class="nav-link {{ request()->routeIs('change-password.index') ? 'active' : '' }}"
-                        href="{{ route('change-password.index') }}">
-                        <i class="nav-icon fas fa-cog" style="color: #ffff"></i>
-                        <p class="text-light">
-                            Change Password
-                        </p>
-                    </a>
-                </li>
+
             </ul>
         </nav>
     </div>

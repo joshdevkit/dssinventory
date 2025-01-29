@@ -133,10 +133,19 @@
                         <button id="select-items-button" class="btn btn-secondary d-none">Select items to approve</button>
                         <button type="button" class="btn btn-primary mb-0 d-none" id="submit-button">Approve
                             Selected</button>
-                        @if ($data->items->pluck('serials')->flatten()->where('borrow_status', 'Approved')->isNotEmpty())
-                            <button type="button" class="btn btn-success mb-0" id="item-received-button">Item
-                                Received</button>
+                        @if (
+                            $data->items->pluck('serials')->flatten()->where('borrow_status', 'Approved')->isNotEmpty() &&
+                                $data->labtext_signature != null)
+                            @if ($data->dean_signature != null)
+                                <button type="button" class="btn btn-success mb-0" id="item-received-button">Item
+                                    Received</button>
+                            @else
+                                <span class="bg-warning text-white py-2 px-3 rounded-lg">Waiting for Dean approval</span>
+                            @endif
+                        @else
+                            <span class="bg-warning text-white py-2 px-3 rounded-lg">Waiting to approve</span>
                         @endif
+
                         @if ($data->items->pluck('serials')->flatten()->where('borrow_status', 'Received')->isNotEmpty())
                             <button type="button" class="btn btn-success mb-0" id="item-returned-button">Mark all as
                                 Returned</button>

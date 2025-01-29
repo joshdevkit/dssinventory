@@ -21,4 +21,9 @@ class RequisitionsItems extends Model
     {
         return $this->hasMany(RequisitionItemsSerial::class,  'requisition_items_id');
     }
+
+    public function requisitions()
+    {
+        return $this->belongsTo(Requisition::class, 'requisition_id');
+    }
 }

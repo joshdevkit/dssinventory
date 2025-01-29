@@ -60,7 +60,7 @@
                                                 <td>{{ $request->requested_by_name }}</td>
                                                 <td>
                                                     @if ($request->item_type === 'Supplies')
-                                                        {{ $request->supply_item }}
+                                                        {{ $request->item_name }}
                                                     @elseif ($request->item_type === 'Equipments')
                                                         <button class="btn btn-secondary show-items"
                                                             data-id="{{ $request->id }}">

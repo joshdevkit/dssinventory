@@ -11,6 +11,7 @@ class SuppliesItems extends Model
 
     protected $fillable = [
         'supplies_id',
-        'serial_no'
+        'serial_no',
+        'disposed'
     ];
 }
