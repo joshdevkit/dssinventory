@@ -19,7 +19,7 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Office Supplies</h1>
                     </div>
-                  
+
                 </div>
             </div><!-- /.container-fluid -->
         </section>
@@ -32,7 +32,7 @@
                         <div class="card">
                             <div class="card-header">
 
-                            <div class="flex float-right">
+                                <div class="flex float-right">
                                     <button class="btn btn-primary btn-sm ml-2" id="print-btn">
                                         <i class="fas fa-print"></i> Print
                                     </button>

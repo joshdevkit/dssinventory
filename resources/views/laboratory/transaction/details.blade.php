@@ -142,8 +142,8 @@
                             @else
                                 <span class="bg-warning text-white py-2 px-3 rounded-lg">Waiting for Dean approval</span>
                             @endif
-                        @else
-                            <span class="bg-warning text-white py-2 px-3 rounded-lg">Waiting to approve</span>
+                            {{-- @else
+                            <span class="bg-warning text-white py-2 px-3 rounded-lg">Waiting to approve</span> --}}
                         @endif
 
                         @if ($data->items->pluck('serials')->flatten()->where('borrow_status', 'Received')->isNotEmpty())

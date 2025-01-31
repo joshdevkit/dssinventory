@@ -81,59 +81,10 @@
                                                     @hasrole('laboratory')
                                                         <td class="d-flex flex-auto">
                                                             <a class="btn btn-primary btn-sm mr-3"
-                                                                href="{{ route('borrows.show', ['id' => $requisition->id]) }}"><i
-                                                                    class="fas fa-eye"></i> View Requisition Details</a>
-                                                            {{-- @if ($requisition->status != 'Approved and Prepared' && $requisition->status != 'Returned' && $requisition->status != 'Damaged' && $requisition->status != 'Repaired' && $requisition->status != 'Declined' && $requisition->status != 'XXX')
-                                                                <div class="dropdown">
-                                                                    <a class="btn btn-secondary dropdown-toggle" href="#"
-                                                                        role="button" data-toggle="dropdown"
-                                                                        aria-expanded="false">
-                                                                        <i class="fas fa-cog"></i> Action
-                                                                    </a>
-                                                                    <div class="dropdown-menu">
-                                                                        @if ($requisition->status === 'Pending')
-                                                                            <a class="dropdown-item" data-status="Approved"
-                                                                                data-id="{{ $requisition->id }}"
-                                                                                href="{{ route('borrows.show', ['id' => $requisition->id]) }}">Approved</a>
-                                                                            <a class="dropdown-item " data-status="Declined"
-                                                                                data-id="{{ $requisition->id }}"
-                                                                                href="{{ route('borrows.show', ['id' => $requisition->id]) }}">Declined</a>
-                                                                        @elseif ($requisition->status === 'Approved')
-                                                                            <a class="dropdown-item status-option"
-                                                                                data-status="Received"
-                                                                                data-id="{{ $requisition->id }}"
-                                                                                href="#">Received</a>
-                                                                        @elseif($requisition->status == 'Accepted by Dean')
-                                                                            <a class="dropdown-item status-option"
-                                                                                data-status="Received"
-                                                                                data-id="{{ $requisition->id }}"
-                                                                                href="#">Received</a>
-                                                                        @elseif($requisition->status == 'Received')
-                                                                            <a class="dropdown-item status-option"
-                                                                                data-status="Returned"
-                                                                                data-id="{{ $requisition->id }}"
-                                                                                href="#">Returned</a>
-                                                                            <a class="dropdown-item status-option"
-                                                                                data-status="Damaged"
-                                                                                data-id="{{ $requisition->id }}"
-                                                                                href="#">Damaged</a>
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                            @elseif($requisition->status === 'Damaged')
-                                                                <a class="btn btn-secondary dropdown-toggle" href="#"
-                                                                    role="button" data-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="fas fa-cog"></i> Action
-                                                                </a>
-                                                                <div class="dropdown-menu">
-
-                                                                    <a class="dropdown-item status-option"
-                                                                        data-status="Repaired" data-id="{{ $requisition->id }}"
-                                                                        href="#">Repaired</a>
-                                                                    <a class="dropdown-item status-option" data-status="XXX"
-                                                                        data-id="{{ $requisition->id }}" href="#">XXX</a>
-                                                                </div>
-                                                            @endif --}}
+                                                                href="{{ route('borrows.show', ['id' => $requisition->id]) }}">
+                                                                <i class="fas fa-eye"></i>
+                                                                View Requisition Details
+                                                            </a>
                                                         </td>
                                                     @endhasrole
                                                 </tr>

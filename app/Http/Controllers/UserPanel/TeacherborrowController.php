@@ -238,6 +238,9 @@ class TeacherBorrowController extends Controller
         ])
             ->latest()
             ->get();
+        // dd($requisitions);
+
+
         $teacherborrows = TeacherBorrow::all();
         $notifications = Auth::user()->notifications;
 
@@ -808,7 +811,15 @@ class TeacherBorrowController extends Controller
             ->where('requisition_items_id', $requisitionItems->id)
             ->get();
 
+        $requisitions = Requisition::find($requisitionItems->requisition_id);
+
         if ($receivedItem->isNotEmpty()) {
+
+            $requisitions->returned_date = now();
+            $requisitions->status = "Returned";
+            $requisitions->save();
+
+
             $receivedItem->each(function ($serial) {
                 $serial->borrow_status = 'Returned';
                 $serial->save();
