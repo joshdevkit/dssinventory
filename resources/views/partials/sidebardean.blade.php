@@ -94,6 +94,15 @@
                         </p>
                     </a>
                 </li>
+
+                <li class="nav-item {{ request()->routeIs('auth.reports') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('auth.reports') ? 'active' : '' }}"
+                        href="{{ route('auth.reports') }}">
+                        <i class="nav-icon fas fa-chart-area" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Laboratory Reports') }}</p>
+                    </a>
+                </li>
+
                 <li class="nav-header text-light"> Site Office </li>
 
                 <li class="nav-item {{ request()->routeIs('dean.transactions.site') ? 'active' : '' }}">
@@ -134,6 +143,8 @@
                         <p class="text-light">{{ __('Requisition') }}</p>
                     </a>
                 </li>
+
+
 
             </ul>
         </nav>

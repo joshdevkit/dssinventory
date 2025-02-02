@@ -795,6 +795,7 @@ class TeacherBorrowController extends Controller
 
         $item = LaboratoryEquipmentItem::find($item_id);
         $item->notes = $notes;
+        $item->noted_at = now();
         $item->save();
 
         return response()->json([

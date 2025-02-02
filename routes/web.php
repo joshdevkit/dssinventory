@@ -29,6 +29,7 @@ use App\Http\Controllers\DeanPanel\DSurveyingController;
 use App\Http\Controllers\DeanPanel\DTestingController;
 use App\Http\Controllers\DeanPanel\DEquipmentController;
 use App\Http\Controllers\DeanPanel\DSuppliesController;
+use App\Http\Controllers\GeneralReportsController;
 use App\Http\Controllers\OfficeRequisitionController;
 use App\Http\Controllers\SuperAdminPanel\SComputerController;
 use App\Http\Controllers\SuperAdminPanel\SConstructionController;
@@ -272,6 +273,14 @@ Route::middleware(['auth', 'role:dean'])->group(function () {
 
     Route::get('/dean/equipment-items', [DeanController::class, 'equipment_items'])->name('dean.equipment-items');
     Route::get('/dean/office-equipment-history/{id}', [DeanController::class, 'equipment_items_history'])->name('dean.equipment-items-history.index');
+});
+
+
+Route::middleware(['auth', 'exclude.user'])->group(function () {
+    Route::controller(GeneralReportsController::class)->group(function () {
+        Route::get('/reports', 'index')->name('auth.reports');
+        Route::get('/reports/lost-damaged-items', 'filter')->name('auth.filter-reports');
+    });
 });
 
 

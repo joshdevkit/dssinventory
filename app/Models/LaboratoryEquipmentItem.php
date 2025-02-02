@@ -14,7 +14,8 @@ class LaboratoryEquipmentItem extends Model
         'laboratory_equipment_id',
         'serial_no',
         'condition',
-        'notes'
+        'notes',
+        'noted_at'
     ];
 
 
