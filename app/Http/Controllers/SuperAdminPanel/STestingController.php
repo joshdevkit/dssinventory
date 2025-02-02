@@ -180,8 +180,9 @@ class STestingController extends Controller
      */
 
 
-    public function destroy(LaboratoryEquipment $testing)  // Here it should be Testing, not TestingRequest
+    public function destroy(Request $request, $id)
     {
+        $testing = LaboratoryEquipment::find($id);
         $testing->delete();
 
         return back()->with([

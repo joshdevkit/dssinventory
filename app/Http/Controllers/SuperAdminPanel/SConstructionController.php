@@ -170,9 +170,10 @@ class SConstructionController extends Controller
      */
 
 
-    public function destroy(LaboratoryEquipment $testing)  // Here it should be Testing, not TestingRequest
+    public function destroy(Request $request, $id)
     {
-        $testing->delete();
+        $construction = LaboratoryEquipment::find($id);
+        $construction->delete();
 
         return back()->with([
             'message' => 'Successfully deleted!',

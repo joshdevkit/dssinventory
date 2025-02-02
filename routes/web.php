@@ -203,7 +203,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     Route::get('superadmin/fluid', [SFLuidController::class, 'index'])->name('superadmin.fluid.index');
     Route::get('superadmin/fluid/create', [SFLuidController::class, 'create'])->name('superadmin.fluid.create');
-    Route::get('superadmin/fluid/store', [SFLuidController::class, 'store'])->name('superadmin.fluid.store');
+    Route::post('superadmin/fluid/store', [SFLuidController::class, 'store'])->name('superadmin.fluid.store');
     Route::get('superadmin/fluid/{id}/show', [SFLuidController::class, 'show'])->name('superadmin.fluid.show');
     Route::get('superadmin/fluid/{id}/edit', [SFLuidController::class, 'edit'])->name('superadmin.fluid.edit');
     Route::put('superadmin/fluid/{id}/update', [SFLuidController::class, 'update'])->name('superadmin.fluid.update');

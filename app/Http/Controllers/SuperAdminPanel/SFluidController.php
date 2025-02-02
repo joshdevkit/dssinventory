@@ -169,12 +169,13 @@ class SFluidController extends Controller
      */
 
 
-    public function destroy(LaboratoryEquipment $surveying)
+    public function destroy(Request $request, $id)
     {
-        $surveying->delete();
+        $fluid = LaboratoryEquipment::find($id);
+        $fluid->delete();
 
         return back()->with([
-            'message' => 'successfully deleted !',
+            'message' => 'Successfully deleted!',
             'alert-type' => 'danger'
         ]);
     }
