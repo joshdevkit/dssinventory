@@ -126,6 +126,14 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ request()->routeIs('site.reports') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('site.reports') ? 'active' : '' }}"
+                        href="{{ route('site.reports') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Office Reports') }}</p>
+                    </a>
+                </li>
+
 
 
             </ul>

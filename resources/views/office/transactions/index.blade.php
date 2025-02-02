@@ -148,12 +148,9 @@
                                                                 <i class="fas fa-cog"></i> Actions
                                                             </a>
                                                             <div class="dropdown-menu">
-                                                                @if ($request->supply_quantity > 0)
-                                                                    <a class="dropdown-item status-option"
-                                                                        data-status="Approved"
-                                                                        data-id="{{ $request->id }}"
-                                                                        href="#">Approved</a>
-                                                                @endif
+                                                                <a class="dropdown-item status-option"
+                                                                    data-status="Approved" data-id="{{ $request->id }}"
+                                                                    href="#">Approved</a>
                                                                 <a class="dropdown-item status-option"
                                                                     data-status="Declined" data-id="{{ $request->id }}"
                                                                     href="#">Declined</a>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OfficeRequest;
 use App\Models\Requisition;
 use App\Models\RequisitionItemsSerial;
 use Illuminate\Http\Request;
@@ -55,5 +56,78 @@ class GeneralReportsController extends Controller
     protected function getRequisitionItems()
     {
         return Requisition::with(['category', 'items.serials.equipmentBelongs', 'items.serials.serialRelatedItem', 'students', 'instructor'])->get();
+    }
+
+
+    public function site_reports()
+    {
+        $user = Auth::user();
+        $role = $user->roles->first()->name ?? 'default';
+
+        if (in_array($role, ['site scretary', 'dean', 'superadmin'])) {
+            return view("reports.site.{$role}-reports");
+        }
+    }
+
+
+    public function filter_type(Request $request)
+    {
+        $filterType = $request->input('filterType');
+
+        $data = [];
+
+        switch ($filterType) {
+            case 'equipment':
+                $data = $this->getOfficeRequestEquipment();
+                break;
+            case 'supplies':
+                $data = $this->getOfficeRequestSupplies();
+                break;
+            default:
+                return collect();
+                break;
+        }
+
+        return response()->json($data);
+    }
+
+    protected function getOfficeRequestEquipment()
+    {
+        return OfficeRequest::select(
+            'office_requests.*',
+            'borrowed_equipment.office_requests_id',
+            'borrowed_equipment.borrow_status',
+            'equipment.item as equipment_item',
+            'equipment_items.serial_no as equipment_serial_no',
+            'borrowed_equipment.date_returned',
+            'borrowed_equipment.borrow_status',
+            'borrowed_equipment.item_id',
+            'borrowed_equipment.equipment_serial_id',
+            'equipment_items.serial_no',
+            'equipment_items.equipment_id',
+            'equipment.*',
+            'users.name as request_by',
+            'office_requests.created_at as date_added'
+        )
+            ->leftJoin('borrowed_equipment', 'office_requests.id', '=', 'borrowed_equipment.office_requests_id')
+            ->leftJoin('equipment_items', 'borrowed_equipment.equipment_serial_id', '=', 'equipment_items.id')
+            ->leftJoin('equipment', 'equipment_items.equipment_id', '=', 'equipment.id')
+            ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
+            ->where('office_requests.item_type', 'Equipments')
+            ->get();
+    }
+
+    protected function getOfficeRequestSupplies()
+    {
+        return OfficeRequest::select(
+            'office_requests.*',
+            'supplies.item',
+            'office_requests.created_at as date_added',
+            'users.name as request_by',
+        )
+            ->leftJoin('supplies', 'office_requests.item_id', '=', 'supplies.id')
+            ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
+            ->where('office_requests.item_type', 'Supplies')
+            ->get();
     }
 }

@@ -217,6 +217,14 @@
                     return;
                 }
 
+                // Collect all selected serials
+                var selectedSerials = [];
+                $('.serial-select').each(function() {
+                    $(this).find('option:selected').each(function() {
+                        selectedSerials.push($(this).val());
+                    });
+                });
+
                 var itemRow = `
             <div class="item-row form-row mb-3">
                 <div class="col col-2">
@@ -226,12 +234,11 @@
 
                 $.each(items, function(index, item) {
                     itemRow += `<option value="${item.id}" data-brand="${item.brand}" data-quantity="${item.count}">
-                            ${item.equipment} (${item.count} available)
-                        </option>`;
+                        ${item.equipment} (${item.count} available)
+                    </option>`;
                 });
 
-                itemRow += `
-                    </select>
+                itemRow += `</select>
                 </div>
                 <div class="col col-4">
                     <label for="serial-${itemIndex}">Items</label>
@@ -241,7 +248,7 @@
                 </div>
                 <div class="col">
                     <label for="qty-${itemIndex}">Quantity:</label>
-                    <input  readonly type="number" class="form-control validate quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" data-max-quantity="0">
+                    <input readonly type="number" class="form-control validate quantity-input" id="qty-${itemIndex}" name="items[${itemIndex}][quantity]" data-max-quantity="0">
                 </div>
                 <div class="col">
                     <label for="brand-${itemIndex}">Brand:</label>
@@ -263,6 +270,7 @@
                     allowClear: true,
                     width: '100%'
                 });
+
                 itemIndex++;
             }
 
@@ -294,12 +302,23 @@
                     success: function(response) {
                         console.log(response);
 
+                        // Collect already selected serials
+                        var selectedSerials = [];
+                        $('.serial-select').each(function() {
+                            $(this).find('option:selected').each(function() {
+                                selectedSerials.push($(this).val());
+                            });
+                        });
+
                         serialDropdown.empty().append(
-                            '<option value="">Select Serial</option>');
+                        '<option value="">Select Serial</option>');
                         $.each(response[0], function(index, serial) {
-                            serialDropdown.append(
-                                `<option value="${serial.id}">${serial.serial_no}</option>`
-                            );
+                            // Exclude serials that are already selected
+                            if (!selectedSerials.includes(serial.id.toString())) {
+                                serialDropdown.append(
+                                    `<option value="${serial.id}">${serial.serial_no}</option>`
+                                );
+                            }
                         });
                     }
                 });
@@ -328,7 +347,6 @@
                 var itemRow = $this.closest('.item-row');
                 var qtyInput = itemRow.find('.quantity-input');
 
-                // Automatically set the quantity to the number of selected serials
                 qtyInput.val(selectedSerials.length);
             });
 

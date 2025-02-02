@@ -94,7 +94,7 @@ class TransactionOfficeController extends Controller
                 $quantity_requested = $item['quantity'];
 
                 // Fetch and shuffle the supplies items
-                $suppliesItems = SuppliesItems::where('supplies_id', $item_id)->get()->shuffle();
+                $suppliesItems = SuppliesItems::where('supplies_id', $item_id)->where('disposed', '!=', 'Out')->get()->shuffle();
 
                 // Keep track of disposed items
                 $disposedItemsCount = 0;
@@ -119,6 +119,7 @@ class TransactionOfficeController extends Controller
                 ]);
             }
         }
+
 
 
         if ($data['category'] === 'Equipments') {
@@ -163,13 +164,18 @@ class TransactionOfficeController extends Controller
                 'office_requests.*',
                 'users.name as requested_by_name',
                 DB::raw("CASE
-                    WHEN office_requests.item_type = 'Supplies' THEN supplies_items.serial_no
-                    WHEN office_requests.item_type = 'Equipments' THEN equipment_items.serial_no
-                 END as serial_no"),
+            WHEN office_requests.item_type = 'Supplies' THEN supplies_items.serial_no
+            WHEN office_requests.item_type = 'Equipments' THEN equipment_items.serial_no
+         END as serial_no"),
                 DB::raw("CASE
-                    WHEN office_requests.item_type = 'Supplies' THEN supplies.item
-                    WHEN office_requests.item_type = 'Equipments' THEN equipment2.item
-                 END as item_name")
+            WHEN office_requests.item_type = 'Supplies' THEN supplies.item
+            WHEN office_requests.item_type = 'Equipments' THEN equipment2.item
+         END as item_name"),
+                DB::raw("CASE
+            WHEN office_requests.item_type = 'Supplies' THEN
+            (SELECT COUNT(*) FROM supplies_items WHERE supplies_items.supplies_id = supplies.id AND supplies_items.disposed != 'Out')
+            WHEN office_requests.item_type = 'Equipments' THEN equipment1.quantity
+         END as supply_remaining_quantity")
             )
             ->leftJoin('supplies', function ($join) {
                 $join->on('office_requests.item_id', '=', 'supplies.id')
@@ -195,6 +201,10 @@ class TransactionOfficeController extends Controller
             ->get();
 
         // dd($requests);
+
+
+        // dd($requests);
+
 
         /**
          * @var App\Models\User;

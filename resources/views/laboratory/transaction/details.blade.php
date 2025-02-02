@@ -188,22 +188,22 @@
                                                 <td>{{ $serial->serialRelatedItem->serial_no }}</td>
                                                 <td>{{ $serial->borrow_status }}</td>
                                                 <td>
-                                                    @if (
-                                                        $serial->borrow_status === 'Returned' &&
-                                                            $serial->serialRelatedItem->condition === 'Queue' &&
-                                                            $serial->serialRelatedItem->notes === null)
+                                                    @if ($serial->borrow_status === 'Returned' && $serial->serialRelatedItem->condition !== 'Damaged')
                                                         <button type="button" class="btn btn-danger mark-damaged"
-                                                            data-id="{{ $serial->serialRelatedItem->id }}"><i
-                                                                class="fas fa-times-circle"></i>
-                                                            Damaged</button>
+                                                            data-id="{{ $serial->serialRelatedItem->id }}">
+                                                            <i class="fas fa-times-circle"></i>
+                                                            Damaged
+                                                        </button>
+                                                    @endif
+                                                    @if (empty($serial->serialRelatedItem->notes))
                                                         <button type="button" class="btn btn-primary add-notes"
                                                             data-note-id="{{ $serial->serialRelatedItem->id }}">
                                                             <i class="far fa-copy"></i>
                                                             Add Note
                                                         </button>
                                                     @endif
-
                                                 </td>
+
                                             </tr>
                                         @endforeach
                                     @endforeach

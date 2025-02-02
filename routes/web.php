@@ -283,5 +283,12 @@ Route::middleware(['auth', 'exclude.user'])->group(function () {
     });
 });
 
+Route::middleware(['auth', 'site.exclusive'])->group(function () {
+    Route::controller(GeneralReportsController::class)->group(function () {
+        Route::get('/site-office/reports', 'site_reports')->name('site.reports');
+        Route::get('/site-office/reports/lost-damaged-items', 'filter_type')->name('auth.site-filter-reports');
+    });
+});
+
 
 require __DIR__ . '/auth.php';

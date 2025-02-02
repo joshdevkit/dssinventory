@@ -68,5 +68,6 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'exclude.user' => \App\Http\Middleware\ExcludeUserRole::class,
+        'site.exclusive' => \App\Http\Middleware\ForSiteRole::class,
     ];
 }
