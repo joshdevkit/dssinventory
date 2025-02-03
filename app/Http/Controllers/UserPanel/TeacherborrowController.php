@@ -58,7 +58,9 @@ class TeacherBorrowController extends Controller
     {
         $category = $request->input('category');
         if ($category == 'General Construction') {
-            $items = LaboratoryEquipment::with(['items', 'category'])
+            $items = LaboratoryEquipment::with(['items' => function ($query) {
+                $query->where('condition', '!=', 'Damaged');
+            }, 'category'])
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'General Construction');
                 })
@@ -66,14 +68,16 @@ class TeacherBorrowController extends Controller
                 ->map(function ($constructionsSerial) {
                     return [
                         'id' => $constructionsSerial->id,
-                        'count' => $constructionsSerial->quantity,
+                        'count' => $constructionsSerial->items->count(),
                         'brand' => $constructionsSerial->brand,
                         'equipment' => $constructionsSerial->equipment,
                     ];
                 })
                 ->toArray();
         } elseif ($category == 'Testing & Mechanics') {
-            $items = LaboratoryEquipment::with(['items', 'category'])
+            $items = LaboratoryEquipment::with(['items' => function ($query) {
+                $query->where('condition', '!=', 'Damaged');
+            }, 'category'])
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'Testing & Mechanics');
                 })
@@ -81,14 +85,16 @@ class TeacherBorrowController extends Controller
                 ->map(function ($constructionsSerial) {
                     return [
                         'id' => $constructionsSerial->id,
-                        'count' => $constructionsSerial->quantity,
+                        'count' => $constructionsSerial->items->count(),
                         'brand' => $constructionsSerial->brand,
                         'equipment' => $constructionsSerial->equipment,
                     ];
                 })
                 ->toArray();
         } elseif ($category == 'Surveying') {
-            $items = LaboratoryEquipment::with(['items', 'category'])
+            $items = LaboratoryEquipment::with(['items' => function ($query) {
+                $query->where('condition', '!=', 'Damaged');
+            }, 'category'])
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'Surveying');
                 })
@@ -96,14 +102,16 @@ class TeacherBorrowController extends Controller
                 ->map(function ($constructionsSerial) {
                     return [
                         'id' => $constructionsSerial->id,
-                        'count' => $constructionsSerial->quantity,
+                        'count' => $constructionsSerial->items->count(),
                         'brand' => $constructionsSerial->brand,
                         'equipment' => $constructionsSerial->equipment,
                     ];
                 })
                 ->toArray();
         } elseif ($category == 'Hydraulics and Fluids') {
-            $items = LaboratoryEquipment::with(['items', 'category'])
+            $items = LaboratoryEquipment::with(['items' => function ($query) {
+                $query->where('condition', '!=', 'Damaged');
+            }, 'category'])
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'Hydraulics and Fluids');
                 })
@@ -111,14 +119,16 @@ class TeacherBorrowController extends Controller
                 ->map(function ($constructionsSerial) {
                     return [
                         'id' => $constructionsSerial->id,
-                        'count' => $constructionsSerial->quantity,
+                        'count' => $constructionsSerial->items->count(),
                         'brand' => $constructionsSerial->brand,
                         'equipment' => $constructionsSerial->equipment,
                     ];
                 })
                 ->toArray();
         } elseif ($category == 'Computer Engineering') {
-            $items = LaboratoryEquipment::with(['items', 'category'])
+            $items = LaboratoryEquipment::with(['items' => function ($query) {
+                $query->where('condition', '!=', 'Damaged');
+            }, 'category'])
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'Computer Engineering');
                 })
@@ -126,7 +136,7 @@ class TeacherBorrowController extends Controller
                 ->map(function ($constructionsSerial) {
                     return [
                         'id' => $constructionsSerial->id,
-                        'count' => $constructionsSerial->quantity,
+                        'count' => $constructionsSerial->items->count(),
                         'brand' => $constructionsSerial->brand,
                         'equipment' => $constructionsSerial->equipment,
                     ];
@@ -155,6 +165,7 @@ class TeacherBorrowController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request);
         $category = Category::where('name', $request->input('category'))->first();
         $validated = $request->validate([
             'dateFiled' => 'required|date',
@@ -196,7 +207,6 @@ class TeacherBorrowController extends Controller
             $requisitionItem = RequisitionsItems::create([
                 'requisition_id' => $requisition->id,
                 'quantity' => $item['quantity'],
-                'remarks' => $item['remarks'],
             ]);
 
             foreach ($item['items'] as $nestedItem) {
@@ -204,8 +214,15 @@ class TeacherBorrowController extends Controller
                     RequisitionItemsSerial::create([
                         'requisition_items_id' => $requisitionItem->id,
                         'equipment_id' => $item['item_id'], // Use parent item's item_id as equipment_id
-                        'equipment_serial_id' => $nestedItem // Use the nested item value as equipment_serial_id
+                        'equipment_serial_id' => $nestedItem, // Use the nested item value as equipment_serial_id
+                        'condition_during_borrow' => $item['remarks']
                     ]);
+
+                    $laboratoryEquipmentItem = LaboratoryEquipmentItem::where('id', $nestedItem)->first();
+                    if ($laboratoryEquipmentItem) {
+                        $laboratoryEquipmentItem->condition = 'Queue';
+                        $laboratoryEquipmentItem->save();
+                    }
                 }
             }
         }
@@ -319,18 +336,27 @@ class TeacherBorrowController extends Controller
     {
         switch ($category) {
             case 'General Construction':
-                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)->get();
+                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)
+                    ->where('condition', '!=', 'Damaged')
+                    ->get();
             case 'Testing & Mechanics':
-                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)->get();
+                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)
+                    ->where('condition', '!=', 'Damaged')
+                    ->get();
             case 'Surveying':
-                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)->get();
+                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)
+                    ->where('condition', '!=', 'Damaged')
+                    ->get();
             case 'Hydraulics and Fluids':
-                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)->get();
+                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)
+                    ->where('condition', '!=', 'Damaged')
+                    ->get();
             case 'Computer Engineering':
-                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)->get();
+                return LaboratoryEquipmentItem::where('laboratory_equipment_id', $equipment_id)
+                    ->where('condition', '!=', 'Damaged')
+                    ->get();
             default:
                 return collect();
-                break;
         }
     }
 
@@ -400,6 +426,22 @@ class TeacherBorrowController extends Controller
             $data->status = 'Declined';
             $data->reason_for_decline = $validated['feedback'];
             $data->save();
+
+
+            $requisitionItems = RequisitionsItems::where('requisition_id', $data->id)->first();
+            $requestSerials = RequisitionItemsSerial::where("requisition_items_id", $requisitionItems->id)->get();
+            $equipment_serial_id = [];
+            foreach ($requestSerials as $serial) {
+                $serial->borrow_status = 'Declined';
+                $serial->save();
+                $equipment_serial_id[] = $serial->equipment_serial_id;
+            }
+
+            $equipmentSerials = LaboratoryEquipmentItem::whereIn('id', $equipment_serial_id)->get();
+            foreach ($equipmentSerials as $serialData) {
+                $serialData->condition = "Good";
+                $serialData->save();
+            }
 
             $userFromRequest = User::find($data->instructor_id);
             $userFromRequest->notify(new RequisitionDecisionNotification($data,  $data->reason_for_decline));
@@ -812,6 +854,13 @@ class TeacherBorrowController extends Controller
             ->where('requisition_items_id', $requisitionItems->id)
             ->get();
 
+        $equipment_serial_id = [];
+        foreach ($receivedItem as $items) {
+            $equipment_serial_id[] = $items->equipment_serial_id;
+        }
+
+        $labItems = LaboratoryEquipmentItem::where('id', $equipment_serial_id)->get();
+
         $requisitions = Requisition::find($requisitionItems->requisition_id);
 
         if ($receivedItem->isNotEmpty()) {
@@ -820,6 +869,10 @@ class TeacherBorrowController extends Controller
             $requisitions->status = "Returned";
             $requisitions->save();
 
+            foreach ($labItems as $labSerials) {
+                $labSerials->condition = "Good";
+                $labSerials->save();
+            }
 
             $receivedItem->each(function ($serial) {
                 $serial->borrow_status = 'Returned';

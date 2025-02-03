@@ -64,7 +64,7 @@
                                                 </td>
                                                 <td>{{ $computer->equipment }}</td>
                                                 <td>{{ $computer->brand }}</td>
-                                                <td>{{ $computer->quantity }}</td>
+                                                <td>{{ $computer->items->count() }}</td>
                                                 <td>{{ $computer->unit }}</td>
                                                 <td>{{ date('F d, Y', strtotime($computer->date_acquired)) }}</td>
                                                 <td>

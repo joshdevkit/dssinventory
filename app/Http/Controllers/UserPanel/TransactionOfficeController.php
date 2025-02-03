@@ -159,24 +159,13 @@ class TransactionOfficeController extends Controller
 
     public function index()
     {
-        $requests = DB::table('office_requests')
+        $mainRequests = DB::table('office_requests')
             ->select(
                 'office_requests.*',
                 'users.name as requested_by_name',
-                DB::raw("CASE
-            WHEN office_requests.item_type = 'Supplies' THEN supplies_items.serial_no
-            WHEN office_requests.item_type = 'Equipments' THEN equipment_items.serial_no
-         END as serial_no"),
-                DB::raw("CASE
-            WHEN office_requests.item_type = 'Supplies' THEN supplies.item
-            WHEN office_requests.item_type = 'Equipments' THEN equipment2.item
-         END as item_name"),
-                DB::raw("CASE
-            WHEN office_requests.item_type = 'Supplies' THEN
-            (SELECT COUNT(*) FROM supplies_items WHERE supplies_items.supplies_id = supplies.id AND supplies_items.disposed != 'Out')
-            WHEN office_requests.item_type = 'Equipments' THEN equipment1.quantity
-         END as supply_remaining_quantity")
+                'equipment1.quantity as supply_remaining_quantity'
             )
+            ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
             ->leftJoin('supplies', function ($join) {
                 $join->on('office_requests.item_id', '=', 'supplies.id')
                     ->where('office_requests.item_type', '=', 'Supplies');
@@ -185,20 +174,57 @@ class TransactionOfficeController extends Controller
                 $join->on('office_requests.item_id', '=', 'equipment1.id')
                     ->where('office_requests.item_type', '=', 'Equipments');
             })
-            ->leftJoin('borrowed_equipment', 'borrowed_equipment.office_requests_id', '=', 'office_requests.id')
-            ->leftJoin('users', 'office_requests.requested_by', '=', 'users.id')
-            ->leftJoin('equipment_items', function ($join) {
-                $join->on('borrowed_equipment.equipment_serial_id', '=', 'equipment_items.id')
-                    ->where('office_requests.item_type', '=', 'Equipments');
-            })
-            ->leftJoin('equipment as equipment2', 'equipment_items.equipment_id', '=', 'equipment2.id')
-            ->leftJoin('supplies_items', function ($join) {
-                $join->on('borrowed_equipment.equipment_serial_id', '=', 'supplies_items.id')
-                    ->where('office_requests.item_type', '=', 'Supplies');
-            })
-            ->leftJoin('supplies as supplies2', 'supplies_items.supplies_id', '=', 'supplies2.id')
             ->orderBy('office_requests.created_at', 'DESC')
             ->get();
+
+        $serialNumbers = DB::table('office_requests')
+            ->select(
+                'office_requests.id',
+                DB::raw("GROUP_CONCAT(DISTINCT CASE
+            WHEN office_requests.item_type = 'Supplies' THEN supplies_items.serial_no
+            WHEN office_requests.item_type = 'Equipments' THEN equipment_items.serial_no
+         END SEPARATOR ', ') as serial_no")
+            )
+            ->leftJoin('supplies_items', function ($join) {
+                $join->on('office_requests.item_id', '=', 'supplies_items.supplies_id')
+                    ->where('office_requests.item_type', '=', 'Supplies');
+            })
+            ->leftJoin('equipment_items', function ($join) {
+                $join->on('office_requests.item_id', '=', 'equipment_items.equipment_id')
+                    ->where('office_requests.item_type', '=', 'Equipments');
+            })
+            ->groupBy('office_requests.id')
+            ->get();
+
+        $itemNames = DB::table('office_requests')
+            ->select(
+                'office_requests.id',
+                DB::raw("GROUP_CONCAT(DISTINCT CASE
+            WHEN office_requests.item_type = 'Supplies' THEN supplies.item
+            WHEN office_requests.item_type = 'Equipments' THEN equipment2.item
+         END SEPARATOR ', ') as item_name")
+            )
+            ->leftJoin('supplies', function ($join) {
+                $join->on('office_requests.item_id', '=', 'supplies.id')
+                    ->where('office_requests.item_type', '=', 'Supplies');
+            })
+            ->leftJoin('equipment as equipment2', function ($join) {
+                $join->on('office_requests.item_id', '=', 'equipment2.id')
+                    ->where('office_requests.item_type', '=', 'Equipments');
+            })
+            ->groupBy('office_requests.id')
+            ->get();
+
+        $requests = $mainRequests->map(function ($request) use ($serialNumbers, $itemNames) {
+            $serialNumber = $serialNumbers->firstWhere('id', $request->id);
+            $itemName = $itemNames->firstWhere('id', $request->id);
+
+            return (object) array_merge((array) $request, [
+                'serial_no' => $serialNumber->serial_no ?? null,
+                'item_name' => $itemName->item_name ?? null,
+            ]);
+        });
+
 
         // dd($requests);
 

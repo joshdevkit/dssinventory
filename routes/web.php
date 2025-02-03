@@ -211,7 +211,6 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
 
 
-
     Route::get('superadmin/equipment', [SEquipmentController::class, 'index'])->name('superadmin.equipment.index');
     Route::get('superadmin/supplies', [SSuppliesController::class, 'index'])->name('superadmin.supplies.index');
     Route::resource('users', UserManagementController::class);

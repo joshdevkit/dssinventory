@@ -12,7 +12,8 @@ class RequisitionItemsSerial extends Model
     protected $fillable = [
         'requisition_items_id',
         'equipment_id',
-        'equipment_serial_id'
+        'equipment_serial_id',
+        'condition_during_borrow'
     ];
 
 

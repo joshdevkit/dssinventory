@@ -62,10 +62,10 @@ class GeneralReportsController extends Controller
     public function site_reports()
     {
         $user = Auth::user();
-        $role = $user->roles->first()->name ?? 'default';
-
-        if (in_array($role, ['site scretary', 'dean', 'superadmin'])) {
-            return view("reports.site.{$role}-reports");
+        $role = $user->roles->first()->name;
+        $replaceUnderScore = str_replace(" ", "-", $role);
+        if (in_array($role, ['site secretary', 'dean', 'superadmin'])) {
+            return view("reports.site.{$replaceUnderScore}-reports");
         }
     }
 

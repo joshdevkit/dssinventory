@@ -130,7 +130,10 @@
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <button id="select-items-button" class="btn btn-secondary d-none">Select items to approve</button>
+                        @if ($data->status != 'Declined')
+                            <button id="select-items-button" class="btn btn-secondary d-none">Select items to
+                                approve</button>
+                        @endif
                         <button type="button" class="btn btn-primary mb-0 d-none" id="submit-button">Approve
                             Selected</button>
                         @if (
@@ -183,7 +186,7 @@
                                                 <td>{{ $serial->equipmentBelongs->equipment }}</td>
                                                 <td>{{ $serial->serialRelatedItem->description }}</td>
                                                 <td>{{ $serial->equipmentBelongs->brand }}</td>
-                                                <td>{{ $item->remarks }}</td>
+                                                <td>{{ $serial->condition_during_borrow }}</td>
                                                 <td>{{ $serial->serialRelatedItem->condition }}</td>
                                                 <td>{{ $serial->serialRelatedItem->serial_no }}</td>
                                                 <td>{{ $serial->borrow_status }}</td>
@@ -195,7 +198,7 @@
                                                             Damaged
                                                         </button>
                                                     @endif
-                                                    @if (empty($serial->serialRelatedItem->notes))
+                                                    @if (empty($serial->serialRelatedItem->notes) && $serial->borrow_status === 'Returned')
                                                         <button type="button" class="btn btn-primary add-notes"
                                                             data-note-id="{{ $serial->serialRelatedItem->id }}">
                                                             <i class="far fa-copy"></i>
