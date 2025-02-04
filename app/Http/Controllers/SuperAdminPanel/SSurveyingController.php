@@ -68,7 +68,7 @@ class SSurveyingController extends Controller
             ]);
         }
 
-        return redirect()->to('/surveyings')->with([
+        return redirect()->to('/superadmin/surveying')->with([
             'message' => 'successfully created !',
             'alert-type' => 'success'
         ]);
@@ -168,12 +168,13 @@ class SSurveyingController extends Controller
      */
 
 
-    public function destroy(LaboratoryEquipment $surveying)
+    public function destroy(Request $request, $id)
     {
+        $surveying = LaboratoryEquipment::find($id);
         $surveying->delete();
 
         return back()->with([
-            'message' => 'successfully deleted !',
+            'message' => 'Successfully deleted!',
             'alert-type' => 'danger'
         ]);
     }

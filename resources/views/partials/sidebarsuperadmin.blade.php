@@ -92,6 +92,16 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ request()->routeIs('superadmin.lab-items') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('superadmin.lab-items') ? 'active' : '' }}"
+                        href="{{ route('superadmin.lab-items') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">
+                            Laboratory Items
+                        </p>
+                    </a>
+                </li>
+
                 <li class="nav-item {{ request()->routeIs('auth.reports') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('auth.reports') ? 'active' : '' }}"
                         href="{{ route('auth.reports') }}">
@@ -123,6 +133,14 @@
                         href="{{ route('superadmin.equipment.index') }}">
                         <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
                         <p class="text-light">{{ __('Equipment') }}</p>
+                    </a>
+                </li>
+
+                <li class="nav-item {{ request()->routeIs('superadmin.site-equipment-items.index') ? 'active' : '' }}">
+                    <a class="nav-link {{ request()->routeIs('superadmin.site-equipment-items.index') ? 'active' : '' }}"
+                        href="{{ route('superadmin.site-equipment-items.index') }}">
+                        <i class="nav-icon fas fa-wrench" style="color: #ffff"></i>
+                        <p class="text-light">{{ __('Office Equipment') }}</p>
                     </a>
                 </li>
 

@@ -60,7 +60,7 @@
                                                     <td>{{ $requisition->id }}</td>
                                                     <td>{{ $requisition->instructor->name }}</td>
                                                     <td>
-                                                        {{ $requisition->items[0]->quantity }}
+                                                        {{ $requisition->items[0]->quantity ?? '' }}
                                                     </td>
                                                     <td>
                                                         {{ $requisition->activity }}

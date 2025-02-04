@@ -301,6 +301,8 @@
                             var itemsRequisitionId = items[0].id
                             let returnedItemsCount = 0
                             items.forEach(function(item) {
+                                // console.log(item);
+
                                 if (item.borrowed_equipment_status === "Pending") {
                                     totalCountofPending++
                                 }
@@ -316,7 +318,7 @@
                                 }
 
                                 var itemHtml = `
-                                <div data-item-id=${item.item_id} data-equipment-status=${item.equipment_status}
+                                <div data-item-id=${item.equipment_serial_id} data-equipment-status=${item.equipment_status}
                                 data-item-status=${item.borrowed_equipment_status} class="list-group-item d-flex justify-content-between
                                      align-items-center ${item.equipment_status === 'Queue' ? '' :
                                       (item.equipment_status === 'Good' ? 'bg-info' : 'bg-danger')}">
@@ -422,16 +424,16 @@
 
                             // Submit selected items on "Submit Selected"
                             $(document).on('click', '#submit-selected-button', function() {
-                                const selectedItems = [];
+                                let selectedItems = [];
 
-                                // Collect all selected checkboxes
                                 $('#items_display .list-group-item input[type="checkbox"]:checked')
                                     .each(function() {
-                                        selectedItems.push($(this)
-                                            .val()); // Push the checkbox value
+                                        // Get the parent list-group-item and then the data-item-id attribute
+                                        let itemId = $(this).closest(
+                                            '.list-group-item').data('item-id');
+                                        selectedItems.push(
+                                            itemId); // Push the item ID value
                                     });
-
-                                console.log('Selected Items:', selectedItems);
 
                                 $.ajax({
                                     url: '{{ route('office.approve-selected-items') }}',

@@ -30,7 +30,10 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="btn-group" role="group" aria-label="Report options">
-                            <button type="button" class="btn btn-primary" id="equipment_report">Equipment</button>
+                            <button type="button" class="btn btn-primary" id="equipment_report">Lost/Damaged
+                                Equipment</button>
+                            <button type="button" class="btn btn-success" id="transaction_equipment_btn">Transaction
+                                Equipment</button>
                             <button type="button" class="btn btn-secondary" id="supplies_report">Supplies</button>
                         </div>
                         <p class="text-muted mt-4">Choose an action whether reports of equipment Items or supplies.
@@ -91,6 +94,7 @@
                                         <th>REQUESTED BY</th>
                                         <th>PURPOSE</th>
                                         <th>STATUS</th>
+                                        <th>NOTES</th>
                                         <th>DATE REQUESTED</th>
                                     </tr>
                                 </thead>
@@ -160,6 +164,23 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <div id="transaction_equipment" class="d-none mt-4">
+                            <table id="equipmentRequisitionTable" class="table table-bordered table-striped mt-5">
+                                <thead>
+                                    <tr>
+                                        <th class="w-25">ITEM</th>
+                                        <th>QUANTITY REQUESTED</th>
+                                        <th>REQUESTED BY</th>
+                                        <th>PURPOSE</th>
+                                        <th>DATE REQUESTED</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipment_data_requisition">
+
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -222,6 +243,7 @@
                                 <td>${item.request_by}</td>
                                 <td>${item.purpose}</td>
                                 <td>${item.borrow_status}</td>
+                                <td>${item.equipment_notes}</td>
                                 <td>${formattedDate}</td>
                             </tr>`;
                     tableBody.append(tableRow);
@@ -353,7 +375,49 @@
                 populateSuppliesTable(filteredData);
             }
 
+            //transaction equipment
+            $('#transaction_equipment_btn').on('click', function() {
+                $('#equipment_section').addClass('d-none')
+                $('#supplies_section').addClass('d-none')
+                $('#transaction_equipment').removeClass('d-none')
 
+                resetFilters();
+                $('#supplies_section').removeClass('d-none');
+                $('#equipment_section').addClass('d-none');
+
+                $.ajax({
+                    url: '{{ route('auth.site-filter-reports') }}',
+                    type: 'GET',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        filterType: "equipment_requisition",
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        originalEquipmentRequisitionData = response;
+                        populateEquipmentRequisitionTable(response);
+                        $('#equipmentRequisitionTable').DataTable();
+                    }
+                });
+            })
+
+            function populateEquipmentRequisitionTable(data) {
+                let tableBody = $('#equipment_data_requisition');
+                tableBody.empty();
+
+                data.forEach(function(item) {
+                    let formattedDate = new Date(item.date_added).toLocaleString();
+
+                    let tableRow = `<tr>
+                                <td>${item.item}</td>
+                                <td>${item.quantity_requested}</td>
+                                <td>${item.requested_by}</td>
+                                <td>${item.purpose}</td>
+                                <td>${formattedDate}</td>
+                            </tr>`;
+                    tableBody.append(tableRow);
+                });
+            }
 
 
             //print EQUIPMENT REPORTS

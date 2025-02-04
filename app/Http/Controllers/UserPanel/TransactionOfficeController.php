@@ -564,14 +564,12 @@ class TransactionOfficeController extends Controller
     public function approveAllSelected(Request $request)
     {
         // Retrieve the borrowed equipment based on selected item IDs
-        $borrowedEquipment = BorrowedEquipment::whereIn('item_id', $request->input('selectedItems'))->get();
-
+        $borrowedEquipment = BorrowedEquipment::whereIn('equipment_serial_id', $request->input('selectedItems'))->get();
         if ($borrowedEquipment->isEmpty()) {
             return response()->json(['message' => 'No items selected.'], 400);
         }
 
         $officeRequisitionRequestId = $borrowedEquipment[0]->office_requests_id;
-
         // Approve selected items
         $equipments = [];
         foreach ($borrowedEquipment as $equipment) {
@@ -580,9 +578,9 @@ class TransactionOfficeController extends Controller
             $equipments[] = $equipment;
         }
 
-        // Decline unselected items
+        // // Decline unselected items
         BorrowedEquipment::where('office_requests_id', $officeRequisitionRequestId)
-            ->whereNotIn('item_id', $request->input('selectedItems'))
+            ->whereNotIn('equipment_serial_id', $request->input('selectedItems'))
             ->update(['borrow_status' => 'Declined']);
 
         $extractedEquipmentId = [];
@@ -651,7 +649,7 @@ class TransactionOfficeController extends Controller
     public function RecievedAllSelected(Request $request)
     {
         // dd($request);
-        $borrowedEquipment = BorrowedEquipment::whereIn('item_id', $request->input('selected_items'))->get();
+        $borrowedEquipment = BorrowedEquipment::whereIn('equipment_serial_id', $request->input('selected_items'))->get();
         // dd($borrowedEquipment);
         foreach ($borrowedEquipment as $equipment) {
             $equipment->borrow_status = 'Received';

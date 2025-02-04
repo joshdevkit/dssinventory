@@ -18,6 +18,7 @@ use App\Models\Surveying;
 use App\Models\SurveyingSerials;
 use App\Models\Testing;
 use App\Models\TestingSerials;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class LaboratoryController extends Controller
@@ -63,6 +64,11 @@ class LaboratoryController extends Controller
     public function equipment_items()
     {
         $equipments = LaboratoryEquipmentItem::with('equipment.category')->get();
+
+        if (Auth::user()->hasRole('superadmin')) {
+            return view('superadmin.equipment-items', compact('equipments'));
+        }
+
         return view('laboratory.equipment-items.index', compact('equipments'));
     }
 
@@ -71,6 +77,9 @@ class LaboratoryController extends Controller
         //
         $history = RequisitionItemsSerial::with(['serialRelatedItem', 'requisition.requisitions.instructor'])->where('equipment_serial_id', $id)->get();
         // dd($history);
+        if (Auth::user()->hasRole('superadmin')) {
+            return view('superadmin.equipment-items-history', compact('history'));
+        }
         return view('laboratory.equipment-items.history', compact('history'));
     }
 }

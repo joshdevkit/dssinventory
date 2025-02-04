@@ -8,6 +8,7 @@ use App\Models\BorrowedEquipment;
 use App\Models\Equipment;
 use App\Models\EquipmentItems;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EquipmentController extends Controller
 {
@@ -25,6 +26,9 @@ class EquipmentController extends Controller
     public function equipment_items()
     {
         $equipmentItems = EquipmentItems::with('equipment')->get();
+        if (Auth::user()->hasRole('superadmin')) {
+            return view('superadmin.office-equipment-items', compact('equipmentItems'));
+        }
         return view('office.equipment.items', compact('equipmentItems'));
     }
 
@@ -177,6 +181,10 @@ class EquipmentController extends Controller
     public function equipment_items_history($id)
     {
         $itemHistory = BorrowedEquipment::where('equipment_serial_id', $id)->where('borrow_status', 'Returned')->with(['items', 'requestFrom.requestBy'])->get();
+
+        if (Auth::user()->hasRole('superadmin')) {
+            return view('superadmin.office-equipment-items-history', compact('itemHistory'));
+        }
         return view('office.equipment.equipment-history', compact('itemHistory'));
     }
 }

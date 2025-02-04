@@ -67,7 +67,7 @@ class SComputerController extends Controller
             ]);
         }
 
-        return redirect()->to('/laboratory-computer-engineering')->with([
+        return redirect()->to('/superadmin/computer_engineering')->with([
             'message' => 'Successfully created!',
             'alert-type' => 'success'
         ]);

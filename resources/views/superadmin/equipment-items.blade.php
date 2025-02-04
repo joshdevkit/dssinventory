@@ -1,4 +1,4 @@
-@extends('layouts.labadmin')
+@extends('layouts.superadmin')
 
 @section('content')
     <div class="content-wrapper">
@@ -35,7 +35,6 @@
                                     <th>Equipment</th>
                                     <th>Serial No</th>
                                     <th>Condition</th>
-                                    <th>Notes</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -46,9 +45,8 @@
                                         <td>{{ $item->equipment->equipment }}</td>
                                         <td>{{ $item->serial_no }}</td>
                                         <td>{{ $item->condition }}</td>
-                                        <td>{{ $item->notes }}</td>
                                         <td>
-                                            <a href="{{ route('laboratory-items-history', ['id' => $item->id]) }}"
+                                            <a href="{{ route('superadmin-items-history', ['id' => $item->id]) }}"
                                                 class="btn btn-sm btn-info"> <i class="fas fa-list"></i>
                                                 History</a>
                                         </td>

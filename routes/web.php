@@ -169,7 +169,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('superadmin/dashboard', [SuperadminController::class, 'index'])->name('superadmin.dashboard');
     Route::get('superadmin/computer_engineering', [SComputerController::class, 'index'])->name('superadmin.computer_engineering.index');
     Route::get('superadmin/computer_engineering/create', [SComputerController::class, 'create'])->name('superadmin.computer_engineering.create');
-    Route::get('superadmin/computer_engineering/store', [SComputerController::class, 'store'])->name('superadmin.computer_engineering.store');
+    Route::post('superadmin/computer_engineering/store', [SComputerController::class, 'store'])->name('superadmin.computer_engineering.store');
     Route::get('superadmin/computer_engineering/{id}/edit', [SComputerController::class, 'edit'])->name('superadmin.computer_engineering.edit');
     Route::get('superadmin/computer_engineering/{id}/show', [SComputerController::class, 'show'])->name('superadmin.computer_engineering.show');
     Route::put('superadmin/computer_engineering/{id}/update', [SComputerController::class, 'update'])->name('superadmin.computer_engineering.update');
@@ -220,6 +220,13 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('superadmin/site-office-transaction', [AdminSiteOffice::class, 'index'])->name('superadmin.site-transactions.index');
     Route::get('/superadmin/requisitions/chart', [TeacherborrowController::class, 'getChartData'])->name('requisitions.chart');
     Route::get('/superadmin/office/chart', [TeacherborrowController::class, 'offcieChartData'])->name('office.chart');
+
+
+    Route::get('/superadmin/laboratory-items', [LaboratoryController::class, 'equipment_items'])->name('superadmin.lab-items');
+    Route::get('/superadmin/equipment-items-history/{id}', [LaboratoryController::class, 'history'])->name('superadmin-items-history');
+
+    Route::get('/superadmin/site-office-equipment', [EquipmentController::class, 'equipment_items'])->name('superadmin.site-equipment-items.index');
+    Route::get('/superadmin/site-office-equipment-history/{id}', [EquipmentController::class, 'equipment_items_history'])->name('superadmin.site-equipment-items-history.index');
 });
 
 
@@ -288,6 +295,9 @@ Route::middleware(['auth', 'site.exclusive'])->group(function () {
         Route::get('/site-office/reports/lost-damaged-items', 'filter_type')->name('auth.site-filter-reports');
     });
 });
+
+
+// Route::
 
 
 require __DIR__ . '/auth.php';

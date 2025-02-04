@@ -33,7 +33,7 @@
                             <h1 class="card-title">Computer Engineering</h1>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('laboratory-computer-engineering.store') }}" method="POST">
+                            <form action="{{ route('superadmin.computer_engineering.store') }}" method="POST">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-6">
