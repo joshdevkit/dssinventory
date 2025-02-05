@@ -7,8 +7,8 @@
 </head>
 
 <body>
-    <div class="bordered">
-        UNIV-{{ $data->id }} B
+    <div style="border: 1px solid black !important; width: 6rem; padding: 3px;">
+        UNIV-043 B
     </div>
     <div class="header">
         <img src="{{ asset('dist/img/spup1.png') }}" alt="Logo">
@@ -19,7 +19,7 @@
     </div>
     <div class="school-title">
         <h4>BUSINESS AFFAIRS OFFICE</h4>
-        <h2 style="margin-top: 35px"><strong>REQUISITION FOR EQUIPMENTS</strong></h2>
+        <h2 style="margin-top: 35px"><strong>REQUISITION FOR SUPPLIES</strong></h2>
     </div>
 
     <div class="date-section">
@@ -67,11 +67,36 @@
             <p class="has-underline"> {{ Auth::user()->name }}</p>
             <p class="margin-top: 0;">(Signature over Printed Name)</p>
         </div>
+
         <div class="signature">
-            <p>Approved by: <img style="width: 250px; margin-left: 6rem;" src="{{ asset($data->dean_signature) }}"></p>
-            <p class="has-underline">{{ $dean ? $dean->name : 'Dean' }}</p>
-            <p class="margin-top: 0;">(Signature over Printed Name)</p>
+            <p>Items Received per P.O________</p>
+            <p>Date: ______________________</p>
         </div>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature">
+            <p>Endorse By: <img style="width: 250px;" src="{{ asset($data->dean_signature) }}"></p>
+            <p class="has-underline">{{ $dean->name }}</p>
+            <p class="margin-top: 0;">Department/Unit Head</p>
+
+            <p>______________________</p>
+            <p>Available Items Received by</p>
+            <p>Date: _________________</p>
+
+        </div>
+        <div class="signature">
+            <p>Approved by: <img style="width: 250px;"></p>
+            <p>______________________</p>
+            <p>VP for Finance</p>
+
+            <p>______________________</p>
+            <p>President</p>
+        </div>
+    </div>
+
+    <div class="signature-section" style="border: 1px solid black !important; width: 70%; padding: 3px;">
+        NOTE: Requests for supply/supplies need the approval of the President
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

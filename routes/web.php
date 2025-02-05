@@ -30,6 +30,7 @@ use App\Http\Controllers\DeanPanel\DTestingController;
 use App\Http\Controllers\DeanPanel\DEquipmentController;
 use App\Http\Controllers\DeanPanel\DSuppliesController;
 use App\Http\Controllers\GeneralReportsController;
+use App\Http\Controllers\LaboratoryItemsController;
 use App\Http\Controllers\OfficeRequisitionController;
 use App\Http\Controllers\SuperAdminPanel\SComputerController;
 use App\Http\Controllers\SuperAdminPanel\SConstructionController;
@@ -294,6 +295,10 @@ Route::middleware(['auth', 'site.exclusive'])->group(function () {
         Route::get('/site-office/reports', 'site_reports')->name('site.reports');
         Route::get('/site-office/reports/lost-damaged-items', 'filter_type')->name('auth.site-filter-reports');
     });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/check-unique-serial', [LaboratoryItemsController::class, 'check'])->name('check-serial');
 });
 
 

@@ -78,8 +78,10 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="exampleInputCondition">{{ __('Serial Number') }}</label>
-                                            <input type="text" name="serial_no[]" id="serial_no[]" class="form-control">
+                                            <input type="text" name="serial_no[]" id="serial_no[]"
+                                                class="form-control serial-value">
                                         </div>
+                                        <div id="message-0" class="message"></div>
                                     </div>
                                     <div class="col-md-5">
                                         <div class="form-group">
@@ -106,7 +108,7 @@
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-md-12 text-right">
-                                        <button type="submit"
+                                        <button type="submit" id="submitBtn"
                                             class="btn btn-success bg-green-500 text-white">{{ __('Save') }}</button>
                                         <a type="cancel" class="btn btn-danger"
                                             href="{{ url('/laboratory-computer-engineering') }}">{{ __('Exit') }}</a>
@@ -124,14 +126,16 @@
 @section('scripts')
     <script>
         $(document).ready(function() {
+            let rowCount = 0;
             $('#add-row').click(function() {
                 var newRow = `
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="exampleInputCondition">{{ __('Serial Number') }}</label>
-                            <input type="text" name="serial_no[]" class="form-control">
+                            <input type="text" name="serial_no[]" class="form-control serial-value">
                         </div>
+                        <div id="message-${rowCount}" class="message"></div>
                     </div>
                     <div class="col-md-5">
                         <div class="form-group">
@@ -156,6 +160,36 @@
             $(document).on('click', '.remove-row', function() {
                 $(this).closest('.row').remove();
             });
+
+            $(document).on('input', '.serial-value', function() {
+                var targetInput = $(this);
+                var val = targetInput.val();
+                var messageElement = targetInput.closest('.row').find(
+                    '.message');
+
+                $.ajax({
+                    url: "{{ route('check-serial') }}",
+                    type: 'GET',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        serial: val,
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        if (response.exist && val.length > 0) {
+                            targetInput.addClass('is-invalid');
+                            messageElement.html(
+                                "<p class='text-danger'>Serial already exists</p>");
+                            $('#submitBtn').prop('disabled', true);
+                        } else {
+                            targetInput.removeClass('is-invalid').addClass('is-valid');
+                            messageElement.html("");
+                            $('#submitBtn').prop('disabled', false);
+                        }
+                    }
+                });
+            });
+
         });
     </script>
 @endsection
