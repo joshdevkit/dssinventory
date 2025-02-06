@@ -31,7 +31,8 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-
+                                <a class="btn btn-success btn-sm" href="{{ route('admin.supplies.create') }}">
+                                    <i class="fas fa-plus"></i> Add items</a>
                                 <div class="flex float-right">
                                     <button class="btn btn-primary btn-sm ml-2" id="print-btn">
                                         <i class="fas fa-print"></i> Print
@@ -51,7 +52,7 @@
                                             <th>Description/Specification</th>
                                             <th>Location/Room</th>
                                             <th>Date Delivered</th>
-
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -65,7 +66,33 @@
                                                 <td>{{ $supply->brand_description }}</td>
                                                 <td>{{ $supply->location }}</td>
                                                 <td>{{ $supply->date_delivered }}</td>
+                                                <td>
+                                                    <a class="btn btn-secondary btn-sm"
+                                                        href="{{ route('admin.supplies.show', ['id' => $supply->id]) }}">View
+                                                        More</a>
+                                                    <a class="btn btn-info btn-sm"
+                                                        href="{{ route('admin.supplies.edit', ['id' => $supply->id]) }}">Edit</a>
+                                                    <form id="delete-form-{{ $supply->id }}"
+                                                        action="{{ route('admin.supplies.destroy', ['id' => $supply->id]) }}"
+                                                        method="POST" style="display: inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            onclick="confirmDelete({{ $supply->id }})">
+                                                            Delete
+                                                        </button>
+                                                    </form>
 
+                                                    <script>
+                                                        function confirmDelete(id) {
+                                                            if (confirm('Are you sure you want to delete this item?')) {
+                                                                document.getElementById('delete-form-' + id).submit();
+                                                            }
+                                                        }
+                                                    </script>
+
+
+                                                </td>
 
                                             @empty
                                             <tr>

@@ -27,6 +27,10 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
+                            <div class="card-header">
+                                <a href="javascript:history.back()" class="btn btn-danger float-right">Back</a>
+
+                            </div>
                             <div class="card-body">
                                 <table id="example1" class="table table-borderd table-striped">
                                     <thead>

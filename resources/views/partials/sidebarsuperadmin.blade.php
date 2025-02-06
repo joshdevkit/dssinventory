@@ -17,7 +17,7 @@
                 <li class="nav-item {{ request()->routeIs('users') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('users.index') ? 'active' : '' }}"
                         href="{{ route('users.index') }}">
-                        <i class="nav-icon fas fa-cog" style="color: #ffff"></i>
+                        <i class="nav-icon fas fa-users" style="color: #ffff"></i>
                         <p class="text-light">{{ __('User Management') }}</p>
                     </a>
                 </li>

@@ -196,6 +196,7 @@
             $('#equipment_report').click(function() {
                 $('#equipment_section').removeClass('d-none');
                 $("#supplies_section").addClass('d-none')
+                $('#transaction_equipment').addClass('d-none')
                 $.ajax({
                     url: '{{ route('auth.site-filter-reports') }}',
                     type: 'GET',
@@ -301,7 +302,7 @@
                 resetFilters();
                 $('#supplies_section').removeClass('d-none');
                 $('#equipment_section').addClass('d-none');
-
+                $('#transaction_equipment').addClass('d-none')
                 $.ajax({
                     url: '{{ route('auth.site-filter-reports') }}',
                     type: 'GET',
@@ -382,8 +383,7 @@
                 $('#transaction_equipment').removeClass('d-none')
 
                 resetFilters();
-                $('#supplies_section').removeClass('d-none');
-                $('#equipment_section').addClass('d-none');
+
 
                 $.ajax({
                     url: '{{ route('auth.site-filter-reports') }}',

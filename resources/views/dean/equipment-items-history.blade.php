@@ -27,6 +27,12 @@
         <section class="content">
             <div class="container-fluid">
                 <div class="card">
+                    <div class="card-header">
+                        <a class="float-right btn btn-danger btn-sm" href="#"
+                            onclick="history.back(); return false;">Exit</a>
+                    </div>
+
+
                     <div class="card-body">
                         <table id="example1" class="table table-bordered table-striped">
                             <thead>

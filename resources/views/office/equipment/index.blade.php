@@ -60,7 +60,9 @@
                                         @foreach ($equipments as $equipment)
                                             <tr data-entry-id="{{ $equipment->id }}">
                                                 <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $equipment->items->count() }}</td>
+                                                <td>{{ $equipment->items->whereNotIn('status', ['Queue', 'Damaged'])->count() }}
+                                                </td>
+
                                                 <td>{{ $equipment->unit }}</td>
                                                 <td>{{ $equipment->item }}</td>
                                                 <td>{{ $equipment->brand_description }}</td>

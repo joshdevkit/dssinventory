@@ -1,57 +1,32 @@
 <?php
 
-namespace App\Http\Controllers\OfficePanel;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\EquipmentRequest;
-use App\Models\BorrowedEquipment;
 use App\Models\Equipment;
 use App\Models\EquipmentItems;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class EquipmentController extends Controller
+class AdminEquipmentController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $equipments = Equipment::with(['items' => function ($query) {
-            $query->where('status', '!=', 'Queue');
-        }])->get();
-
-        return view('office.equipment.index', compact('equipments'));
-    }
-
-
-
-    public function equipment_items()
-    {
-        /**
-         * @var App\Models\User
-         */
-        $user = Auth::user();
-
-        $equipmentItems = EquipmentItems::with('equipment')->get();
-        if ($user->hasRole('superadmin')) {
-            return view('superadmin.office-equipment-items', compact('equipmentItems'));
-        }
-        return view('office.equipment.items', compact('equipmentItems'));
+        //
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function create()
     {
-        return view('office.equipment.create');
+        return view('superadmin.equipment.create');
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function store(EquipmentRequest $request)
     {
@@ -73,42 +48,35 @@ class EquipmentController extends Controller
             ]);
         }
 
-        return redirect()->to('/office/equipment')->with([
+        return redirect()->to('/superadmin/equipment')->with([
             'message' => 'successfully created !',
             'alert-type' => 'success'
         ]);
     }
 
-
-    public function show($id)
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
     {
         $data = Equipment::with('items')->find($id);
-        return view('office.equipment.show', compact('data'));
+        return view('superadmin.equipment.show', compact('data'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(string $id)
     {
         $equipment = Equipment::with('items')->find($id);
-        return view('office.equipment.edit', compact('equipment'));
+        return view('superadmin.equipment.edit', compact('equipment'));
     }
-
-
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-
-
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
-        // Validate the incoming request
         $request->validate([
             'serial_no' => 'required|array',
             'item' => 'required|string',
@@ -146,54 +114,20 @@ class EquipmentController extends Controller
         $totalItems = $equipment->items()->count();
         $equipment->update(['quantity' => $totalItems]);
 
-        return redirect()->to('/equipment')->with('message', 'Successfully updated!');
+        return redirect()->to('/superadmin/equipment')->with('message', 'Successfully updated!');
     }
-
-
-
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-
-
-    public function destroy(Equipment $equipment)
+    public function destroy($id)
     {
+        $equipment = Equipment::find($id);
         $equipment->delete();
 
         return back()->with([
             'message' => 'successfully deleted !',
             'alert-type' => 'danger'
         ]);
-    }
-
-    /**
-     * Delete all selected Service at once.
-     *
-     * @param Request $request
-     */
-    public function massDestroy(Request $request)
-    {
-        Equipment::whereIn('id', request('ids'))->delete();
-
-        return response()->noContent();
-    }
-
-
-    public function equipment_items_history($id)
-    {
-        /**
-         * @var App\Models\User
-         */
-        $user = Auth::user();
-        $itemHistory = BorrowedEquipment::where('equipment_serial_id', $id)->where('borrow_status', 'Returned')->with(['items', 'requestFrom.requestBy'])->get();
-
-        if ($user->hasRole('superadmin')) {
-            return view('superadmin.office-equipment-items-history', compact('itemHistory'));
-        }
-        return view('office.equipment.equipment-history', compact('itemHistory'));
     }
 }

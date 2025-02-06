@@ -128,13 +128,15 @@
                                                     <td>{{ $serial->equipmentBelongs->equipment ?? 'N/A' }}</td>
                                                     <td>{{ $serial->serialRelatedItem->description ?? 'N/A' }}</td>
                                                     <td>{{ $serial->equipmentBelongs->brand ?? 'N/A' }}</td>
-                                                    <td>{{ $item->remarks }}</td>
+                                                    <td>{{ $serial->condition_during_borrow ?? 'N/A' }}</td>
+                                                    <!-- FIXED THIS LINE -->
                                                     <td>{{ $serial->serialRelatedItem->serial_no ?? 'N/A' }}</td>
                                                     <td>{{ $serial->borrow_status }}</td>
                                                 </tr>
                                             @endif
                                         @endforeach
                                     @endforeach
+
                                 </tbody>
                             </table>
                         @else

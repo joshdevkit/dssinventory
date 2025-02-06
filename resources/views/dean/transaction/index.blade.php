@@ -61,8 +61,9 @@
                                                 <td>{{ $requisition->instructor->name }}</td>
                                                 <td>{{ $requisition->category->name }}</td>
                                                 <td>
-                                                    {{ $requisition->items[0]->quantity }}
+                                                    {{ $requisition->items->flatMap->serials->where('borrow_status', 'Approved')->count() }}
                                                 </td>
+
                                                 <td>
                                                     {{ $requisition->activity }}
                                                 </td>

@@ -207,7 +207,7 @@
                 allowClear: true,
                 width: '100%'
             });
-
+            $('#dateNeeded').attr('min', new Date().toISOString().slice(0, 16));
             var itemIndex = 1;
 
             function addItemRow() {
@@ -311,7 +311,7 @@
                         });
 
                         serialDropdown.empty().append(
-                        '<option value="">Select Serial</option>');
+                            '<option value="">Select Serial</option>');
                         $.each(response[0], function(index, serial) {
                             // Exclude serials that are already selected
                             if (!selectedSerials.includes(serial.id.toString())) {

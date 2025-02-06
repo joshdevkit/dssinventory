@@ -1,4 +1,4 @@
-@extends('layouts.officeadmin')
+@extends('layouts.superadmin')
 
 @section('content')
 
@@ -55,7 +55,7 @@
                             <strong>DATE DELIVERED:</strong> {{ $data->date_delivered }}<br>
                         </div>
                     </div>
-                    <a class="btn btn-danger float-right" href="{{ url('/office/supplies') }}">Exit</a>
+                    <a class="btn btn-danger float-right" href="{{ url('/superadmin/supplies') }}">Exit</a>
                 </div>
             </div>
         </div>

@@ -19,7 +19,7 @@
                     <div class="col-sm-6">
                         <h1 class = "text-success">Office Equipment</h1>
                     </div>
-                    
+
                 </div>
             </div><!-- /.container-fluid -->
         </section>
@@ -31,8 +31,9 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-
-                            <div class="flex float-right">
+                                <a class="btn btn-success btn-sm" href="/superadmin/equipment/create"><i
+                                        class="fas fa-plus"></i> Add new</a>
+                                <div class="flex float-right">
                                     <button class="btn btn-primary btn-sm ml-2" id="print-btn">
                                         <i class="fas fa-print"></i> Print
                                     </button>
@@ -50,7 +51,7 @@
                                             <th>Description/Specification</th>
                                             <th>Location/Room</th>
                                             <th>Date Delivered</th>
-
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -64,7 +65,33 @@
                                                 <td>{{ $equipment->brand_description }}</td>
                                                 <td>{{ $equipment->location }}</td>
                                                 <td>{{ $equipment->date_delivered }}</td>
+                                                <td>
+                                                    <a class="btn btn-secondary btn-sm"
+                                                        href="{{ route('admin.equipment.show', ['id' => $equipment->id]) }}">View
+                                                        More</a>
+                                                    <a class="btn btn-info btn-sm"
+                                                        href="{{ route('admin.equipment.edit', ['id' => $equipment->id]) }}">Edit</a>
+                                                    <form id="delete-form-{{ $equipment->id }}"
+                                                        action="{{ route('admin.equipment.destroy', ['id' => $equipment->id]) }}"
+                                                        method="POST" style="display: inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            onclick="confirmDelete({{ $equipment->id }})">
+                                                            Delete
+                                                        </button>
+                                                    </form>
 
+                                                    <script>
+                                                        function confirmDelete(id) {
+                                                            if (confirm('Are you sure you want to delete this item?')) {
+                                                                document.getElementById('delete-form-' + id).submit();
+                                                            }
+                                                        }
+                                                    </script>
+
+
+                                                </td>
                                             @empty
                                             <tr>
                                                 <td colspan="7" class="text-center">{{ __('Data Empty') }}</td>
@@ -217,4 +244,3 @@
         });
     </script>
 @endsection
-

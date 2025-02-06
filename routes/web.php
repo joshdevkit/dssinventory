@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdminEquipmentController;
+use App\Http\Controllers\AdminSuppliesController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserPanel\UserController;
@@ -228,6 +230,23 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     Route::get('/superadmin/site-office-equipment', [EquipmentController::class, 'equipment_items'])->name('superadmin.site-equipment-items.index');
     Route::get('/superadmin/site-office-equipment-history/{id}', [EquipmentController::class, 'equipment_items_history'])->name('superadmin.site-equipment-items-history.index');
+
+
+
+    Route::get('/superadmin/equipment/create', [AdminEquipmentController::class, 'create'])->name('admin.equipment.create');
+    Route::post('/superadmin/equipment/store', [AdminEquipmentController::class, 'store'])->name('admin.equipment.store');
+    Route::get('/superadmin/equipment/{id}/show', [AdminEquipmentController::class, 'show'])->name('admin.equipment.show');
+    Route::put('/superadmin/equipment/{id}/update', [AdminEquipmentController::class, 'update'])->name('admin.equipment.update');
+    Route::get('/superadmin/equipment/{id}/edit', [AdminEquipmentController::class, 'edit'])->name('admin.equipment.edit');
+    Route::delete('/superadmin/equipment/{id}/delete', [AdminEquipmentController::class, 'destroy'])->name('admin.equipment.destroy');
+
+
+    Route::get('/superadmin/supplies/create', [AdminSuppliesController::class, 'create'])->name('admin.supplies.create');
+    Route::post('/superadmin/supplies/store', [AdminSuppliesController::class, 'store'])->name('admin.supplies.store');
+    Route::get('/superadmin/supplies/{id}/show', [AdminSuppliesController::class, 'show'])->name('admin.supplies.show');
+    Route::put('/superadmin/supplies/{id}/update', [AdminSuppliesController::class, 'update'])->name('admin.supplies.update');
+    Route::get('/superadmin/supplies/{id}/edit', [AdminSuppliesController::class, 'edit'])->name('admin.supplies.edit');
+    Route::delete('/superadmin/supplies/{id}/delete', [AdminSuppliesController::class, 'destroy'])->name('admin.supplies.destroy');
 });
 
 

@@ -577,8 +577,18 @@ class TransactionOfficeController extends Controller
             $equipment->save();
             $equipments[] = $equipment;
         }
-
         // // Decline unselected items
+        $declinedEquipmentSerialIds = BorrowedEquipment::where('office_requests_id', $officeRequisitionRequestId)
+            ->whereNotIn('equipment_serial_id', $request->input('selectedItems'))
+            ->pluck('equipment_serial_id')->toArray();
+
+        $declinedItemsSetToGood = EquipmentItems::whereIn('id', $declinedEquipmentSerialIds)->get();
+        foreach ($declinedItemsSetToGood as $itemtoSetasGood) {
+            $itemtoSetasGood->status = "Good";
+            $itemtoSetasGood->save();
+        }
+
+        // Update the records with the 'Declined' status
         BorrowedEquipment::where('office_requests_id', $officeRequisitionRequestId)
             ->whereNotIn('equipment_serial_id', $request->input('selectedItems'))
             ->update(['borrow_status' => 'Declined']);
@@ -591,6 +601,7 @@ class TransactionOfficeController extends Controller
             $extractedEquipmentId[] = $ExtractedEquipment->item_id;
             $equipmentSerialId[] = $ExtractedEquipment->equipment_serial_id;
         }
+
 
         // Get the selected equipment based on extracted equipment IDs
         $SlectedBorrowedEquipmentToApproved = Equipment::whereIn('id', $extractedEquipmentId)->get();
